@@ -437,8 +437,14 @@ class modorderfromsupplierordermulticompany extends DolibarrModules
 
         $result = $this->loadTables();
 
-        $url = dol_buildpath('/orderfromsupplierordermulticompany/script/create-maj-base.php', 2);
-        file_get_contents($url);
+		define('INC_FROM_DOLIBARR', true);				
+        dol_include_once('/orderfromsupplierordermulticompany/config.php');		
+
+        $PDOdb=new TPDOdb;
+		$PDOdb->db->debug=true;
+		
+		$o=new TTELink($db);
+		$o->init_db_by_vars($PDOdb);
 
         return $this->_init($sql, $options);
     }
