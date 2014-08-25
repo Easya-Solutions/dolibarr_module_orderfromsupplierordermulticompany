@@ -23,22 +23,15 @@
  * 				Put some comments here
  */
 // Dolibarr environment
-$res = @include("../../main.inc.php"); // From htdocs directory
-if (! $res) {
-    $res = @include("../../../main.inc.php"); // From "custom" directory
-}
-
+require('../config.php');
 
 // Libraries
 require_once DOL_DOCUMENT_ROOT . "/core/lib/admin.lib.php";
-require_once '../lib/mymodule.lib.php';
-
-dol_include_once('/mymodule/lib/php-markdown/markdown.php');
-
+require_once '../lib/orderfromsupplierordermulticompany.lib.php';
 
 //require_once "../class/myclass.class.php";
 // Translations
-$langs->load("mymodule@mymodule");
+$langs->load("orderfromsupplierordermulticompany@orderfromsupplierordermulticompany");
 
 // Access control
 if (! $user->admin) {
@@ -82,8 +75,8 @@ $buffer = file_get_contents(dol_buildpath('/mymodule/README.md', 0));
 echo Markdown($buffer);
 
 echo '<br>',
-'<a href="' . dol_buildpath('/mymodule/COPYING', 1) . '">',
-'<img src="' . dol_buildpath('/mymodule/img/gplv3.png', 1) . '"/>',
+'<a href="' . dol_buildpath('/orderfromsupplierordermulticompany/COPYING', 1) . '">',
+'<img src="' . dol_buildpath('/orderfromsupplierordermulticompany/img/gplv3.png', 1) . '"/>',
 '</a>';
 
 llxFooter();

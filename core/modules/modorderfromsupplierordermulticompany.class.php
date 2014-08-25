@@ -45,7 +45,7 @@ class modorderfromsupplierordermulticompany extends DolibarrModules
         // Id for module (must be unique).
         // Use a free id here
         // (See in Home -> System information -> Dolibarr for list of used modules id).
-        $this->numero = 104000; // 104000 to 104999 for ATM CONSULTING
+        $this->numero = 104200; // 104000 to 104999 for ATM CONSULTING
         // Key text used to identify module (for permissions, menus, etc...)
         $this->rights_class = 'orderfromsupplierordermulticompany';
 
@@ -53,7 +53,7 @@ class modorderfromsupplierordermulticompany extends DolibarrModules
         // It is used to group modules in module setup page
         $this->family = "other";
         // Module label (no space allowed)
-        // used if translation string 'ModuleXXXName' not found
+        // used if translation strinpplierordermulticompany 	Description of module orderfromsupplierordermulticompanyg 'ModuleXXXName' not found
         // (where XXX is value of numeric property 'numero' of module)
         $this->name = preg_replace('/^mod/i', '', get_class($this));
         // Module description
@@ -61,13 +61,13 @@ class modorderfromsupplierordermulticompany extends DolibarrModules
         // (where XXX is value of numeric property 'numero' of module)
         $this->description = "Description of module orderfromsupplierordermulticompany";
         // Possible values for version are: 'development', 'experimental' or version
-        $this->version = 'development';
+        $this->version = '0.9';
         // Key used in llx_const table to save module status enabled/disabled
         // (where MYMODULE is value of property name of module in uppercase)
         $this->const_name = 'MAIN_MODULE_' . strtoupper($this->name);
         // Where to store the module in setup page
         // (0=common,1=interface,2=others,3=very specific)
-        $this->special = 0;
+        $this->special = 2;
         // Name of image file used for this module.
         // If file is in theme/yourtheme/img directory under name object_pictovalue.png
         // use this->picto='pictovalue'
@@ -80,7 +80,7 @@ class modorderfromsupplierordermulticompany extends DolibarrModules
         // for specific css file (eg: /orderfromsupplierordermulticompany/css/orderfromsupplierordermulticompany.css.php)
         $this->module_parts = array(
             // Set this to 1 if module has its own trigger directory
-            //'triggers' => 1,
+            'triggers' => 1,
             // Set this to 1 if module has its own login method directory
             //'login' => 0,
             // Set this to 1 if module has its own substitution function file
@@ -109,7 +109,7 @@ class modorderfromsupplierordermulticompany extends DolibarrModules
 
         // Dependencies
         // List of modules id that must be enabled if this module is enabled
-        $this->depends = array();
+        $this->depends = array('modMulticompany');
         // List of modules id to disable if this one is disabled
         $this->requiredby = array();
         // Minimum version of PHP required by module
