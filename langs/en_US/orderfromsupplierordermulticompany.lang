@@ -1,2 +1,3 @@
-ModuleXXXXXXName = Name
-ModuleXXXXXXDesc = Descripion
+Module104200Name = Orders from purchase orders
+Module104200Desc = Created sales orders from purchase orders to other entities
+orderfromsupplierordermulticompanySetupPage = Here the connection between one third and one entity.
