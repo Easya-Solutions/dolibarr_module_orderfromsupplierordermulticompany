@@ -116,7 +116,7 @@ dol_fiche_head(
 		<tr class="liste_titre">
 			<td><?php echo $langs->trans('Company'); ?></td>
 			<td><?php echo $langs->trans('Entity'); ?></td>
-			<td><?php echo $langs->trans('Actions'); ?></td>
+			<td><?php echo $langs->trans('Delete'); ?> ?</td>
 		</tr>
 	<?php
 	
@@ -130,8 +130,8 @@ dol_fiche_head(
 		?>
 			<tr>
 				<td><?php print $html->select_company($link->fk_soc,'TLine['.$link->rowid.'][fk_soc]','',1);  ?></td>
-				<td><?php print $m->select_entities($link->entity,'TLine['.$link->rowid.'][fk_entity]' ); ?></td>
-				<td>#</td>
+				<td><?php print $m->select_entities($link->fk_entity,'TLine['.$link->rowid.'][fk_entity]' ); ?></td>
+				<td><input type="checkbox" value="1" name="TLine[<?php echo $link->rowid ?>][delete]"/></td>
 			</tr>		
 		<?		
 		
