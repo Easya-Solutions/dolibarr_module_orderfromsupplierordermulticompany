@@ -34,6 +34,7 @@
 			
 			//$res = $db->query("SELECT fk_soc FROM ".MAIN_DB_PREFIX."thirdparty_entity WHERE fk_entity=".$toEntity." AND entity=".$conf->entity );	
 			$res = $db->query("SELECT fk_soc FROM ".MAIN_DB_PREFIX."thirdparty_entity WHERE entity=".$toEntity." AND fk_entity=".$conf->entity ); //Attention, cela permet de créer la commande sur la société correspondant à l'entité emettrice
+
 			$obj = $db->fetch_object($res);	
 				
 			if($obj->fk_soc>0) {

@@ -123,7 +123,7 @@ class Interfaceorderfromsupplierordermulticompanytrigger
         	
 			$db=& $this->db;
 				
-			$res = $db->query("SELECT fk_entity FROM ".MAIN_DB_PREFIX."thirdparty_entity WHERE entity=".$conf->entity." AND fk_soc=".$object->socid );	
+			$res = $db->query("SELECT fk_entity FROM ".MAIN_DB_PREFIX."thirdparty_entity WHERE entity=".$conf->entity." AND fk_soc=".$object->socid.' AND fk_entity <> '.$conf->entity);	
 			$obj = $db->fetch_object($res);	
 				
 			if($obj->fk_entity>0) {
