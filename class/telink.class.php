@@ -31,7 +31,6 @@
 			$cf=new CommandeFournisseur($db);
 			$cf->fetch($idOrderSource);
 			
-			
 			//$res = $db->query("SELECT fk_soc FROM ".MAIN_DB_PREFIX."thirdparty_entity WHERE fk_entity=".$toEntity." AND entity=".$conf->entity );	
 			$res = $db->query("SELECT fk_soc FROM ".MAIN_DB_PREFIX."thirdparty_entity WHERE entity=".$toEntity." AND fk_entity=".$conf->entity ); //Attention, cela permet de créer la commande sur la société correspondant à l'entité emettrice
 
@@ -68,7 +67,6 @@
 
 				$o->fk_project = $cf->fk_project; //TODO check if it's shared project
 
-//var_dump($cf,$o);exit;
 				if($o->create($user)<0) {
 					
 					var_dump($o);
@@ -79,7 +77,26 @@
 					$res = $db->query("UPDATE ".MAIN_DB_PREFIX."commande
 						 SET entity=".$toEntity." 
 						 WHERE rowid=".$o->id ); // on transporte la commande dans l'autre entité	
-				
+					 
+					if(!empty($conf->nomenclature->enabled)) {
+						
+						dol_include_once('/nomenclature/class/nomenclature.class.php');
+						$PDOdb = new TPDOdb;
+						
+						foreach($cf->lines as $k=>&$line) {
+							$n=new TNomenclature;
+							$n->loadByObjectId($PDOdb, $line->id, $cf->element);
+							if($n->iExist) {
+								$n->reinit();
+								$n->fk_object = $o->lines[$k]->rowid;
+								$n->object_type = $o->element;
+								$n->save($PDOdb);
+							}
+							
+						}		
+							
+						
+					}
 					
 				}
 				

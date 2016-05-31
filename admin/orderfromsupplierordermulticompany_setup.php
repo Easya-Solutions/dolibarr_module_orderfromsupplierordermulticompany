@@ -133,7 +133,7 @@ dol_fiche_head(
 				<td><?php print $m->select_entities($link->fk_entity,'TLine['.$link->rowid.'][fk_entity]' ); ?></td>
 				<td><input type="checkbox" value="1" name="TLine[<?php echo $link->rowid ?>][delete]"/></td>
 			</tr>		
-		<?		
+		<?php	
 		
 	}
 		?><tr class="liste_titre">
