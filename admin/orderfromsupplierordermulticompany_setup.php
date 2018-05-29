@@ -131,7 +131,7 @@ dol_fiche_head(
 					
 		?>
 			<tr>
-				<td><?php print $html->select_company($link->fk_soc,'TLine_'.$link->rowid.'_fk_soc','',1);  ?><?php print $html->select_company($link->fk_soc,'TLine_['.$link->rowid.'_fk_soc','',1);  ?></td>
+				<td><?php print $html->select_company($link->fk_soc,'TLine_'.$link->rowid.'_fk_soc','',1);  ?></td>
 				<td><?php print $m->select_entities($link->fk_entity,'TLine_'.$link->rowid.'_fk_entity' ); ?></td>
 				<td><input type="hidden" name="TLine[<?php echo $link->rowid ?>][rowid]" value="<?php echo $link->rowid ?>" /><input type="checkbox" value="1" name="TLine[<?php echo $link->rowid ?>][delete]"/></td>
 			</tr>		
