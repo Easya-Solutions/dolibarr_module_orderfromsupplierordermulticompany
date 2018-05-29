@@ -69,12 +69,14 @@ dol_fiche_head(
 	echo $langs->trans("orderfromsupplierordermulticompanySetupPage");
 
 	$ATMdb=new TPDOdb;
-
 	if(isset($_REQUEST['action']) && $_REQUEST['action']=='save') {
 		
-		if(!empty($_REQUEST['TLine'])) {
+	    if(!empty($_REQUEST['TLine'])) {
 			foreach($_REQUEST['TLine'] as $id=>$TValues) {
-				
+			    
+			    $TValues['fk_entity'] = GETPOST('TLine_'.$TValues['rowid'].'_fk_entity', 'int');
+			    $TValues['fk_soc'] = GETPOST('TLine_'.$TValues['rowid'].'_fk_soc', 'int');
+			    
 				$o=new TTELink;
 				if($id>0 ) $o->load($ATMdb, $id);
 				else{
@@ -129,17 +131,17 @@ dol_fiche_head(
 					
 		?>
 			<tr>
-				<td><?php print $html->select_company($link->fk_soc,'TLine['.$link->rowid.'][fk_soc]','',1);  ?></td>
-				<td><?php print $m->select_entities($link->fk_entity,'TLine['.$link->rowid.'][fk_entity]' ); ?></td>
-				<td><input type="checkbox" value="1" name="TLine[<?php echo $link->rowid ?>][delete]"/></td>
+				<td><?php print $html->select_company($link->fk_soc,'TLine_'.$link->rowid.'_fk_soc','',1);  ?><?php print $html->select_company($link->fk_soc,'TLine_['.$link->rowid.'_fk_soc','',1);  ?></td>
+				<td><?php print $m->select_entities($link->fk_entity,'TLine_'.$link->rowid.'_fk_entity' ); ?></td>
+				<td><input type="hidden" name="TLine[<?php echo $link->rowid ?>][rowid]" value="<?php echo $link->rowid ?>" /><input type="checkbox" value="1" name="TLine[<?php echo $link->rowid ?>][delete]"/></td>
 			</tr>		
 		<?php	
 		
 	}
 		?><tr class="liste_titre">
-				<td><?php print $html->select_company(-1,'TLine[0][fk_soc]','',1);  ?></td>
-				<td><?php print $m->select_entities(-1,'TLine[0][fk_entity]' ); ?></td>
-				<td>Nouvelle liaison</td>
+				<td><?php print $html->select_company(-1,'TLine_0_fk_soc','',1);  ?></td>
+				<td><?php print $m->select_entities(-1,'TLine_0_fk_entity' ); ?></td>
+				<td><input type="hidden" name="TLine[0][rowid]" value="0" /> <?php $langs->trans('Nouvelle liaison'); ?></td>
 			</tr>		
 	</table>
 	<?php 
