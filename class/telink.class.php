@@ -63,9 +63,22 @@
 				$o->date = date('Y-m-d H:i:s');
 				$o->ref_client = $cf->ref;
 				$o->socid = $obj->fk_soc;
-				$o->lines = $cf->lines;
 
 				$o->fk_project = $cf->fk_project; //TODO check if it's shared project
+
+				$o->lines = array();
+
+				foreach($cf->lines as $line) {
+					$lineOrder = new OrderLine($db);
+
+					$TPropertiesToClone = array('desc', 'subprice', 'qty', 'tva_tx', 'vat_src_code', 'localtax1_tx', 'localtax2_tx', 'fk_product', 'remise_percent', 'info_bits', 'fk_remise_except', 'date_start', 'date_end', 'product_type', 'rang', 'special_code', 'fk_parent_line', 'fk_fournprice', 'pa_ht', 'label', 'array_options', 'fk_unit', 'id');
+
+					foreach($TPropertiesToClone as $property) {
+						$lineOrder->{ $property } = $line->{ $property };
+					}
+
+					$o->lines[] = $lineOrder;
+				}
 
 				if($o->create($user)<0) {
 					
@@ -73,13 +86,12 @@
 					exit("Erreur création commande");
 				}
 				else{
-					
-					$res = $db->query("UPDATE ".MAIN_DB_PREFIX."commande
-						 SET entity=".$toEntity." 
-						 WHERE rowid=".$o->id ); // on transporte la commande dans l'autre entité	
-					 
+
 					if(!empty($conf->nomenclature->enabled)) {
-						
+						$orderID = $o->id;
+						$o = new Commande($db);
+						$res = $o->fetch($orderID); // Rechargement pour récupérer les bons IDs des lignes
+
 						dol_include_once('/nomenclature/class/nomenclature.class.php');
 						$PDOdb = new TPDOdb;
 						
@@ -88,7 +100,7 @@
 							$n->loadByObjectId($PDOdb, $line->id, $cf->element);
 							if($n->iExist) {
 								$n->reinit();
-								$n->fk_object = $o->lines[$k]->rowid;
+								$n->fk_object = $o->lines[$k]->id;
 								$n->object_type = $o->element;
 								$n->save($PDOdb);
 							}
@@ -97,7 +109,12 @@
 							
 						
 					}
-					
+
+					// Le changement d'entité doit se faire après le changement d'entité, sinon, le fetch échoue
+					$res = $db->query("UPDATE ".MAIN_DB_PREFIX."commande
+						 SET entity=".$toEntity."
+						 WHERE rowid=".$o->id ); // on transporte la commande dans l'autre entité
+
 				}
 				
 				
