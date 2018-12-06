@@ -80,6 +80,11 @@
 					$o->lines[] = $lineOrder;
 				}
 
+				if(!empty($conf->global->OFSOM_DONT_FORCE_BUY_PRICE_WITH_SELL_PRICE)) {
+					$oldval = $conf->global->ForceBuyingPriceIfNull;
+					$conf->global->ForceBuyingPriceIfNull = 0;
+				}
+
 				if($o->create($user)<0) {
 					
 					var_dump($o);
@@ -118,6 +123,7 @@
 				}
 				
 				
+                                if(!empty($conf->global->OFSOM_DONT_FORCE_BUY_PRICE_WITH_SELL_PRICE)) $conf->global->ForceBuyingPriceIfNull = $oldval;
 				
 			}
 			
