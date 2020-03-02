@@ -1,3 +1,7 @@
 Module104200Name = Orders from purchase orders
 Module104200Desc = Created sales orders from purchase orders to other entities
 orderfromsupplierordermulticompanySetupPage = Here the connection between one third and one entity.
+
+# CONF
+
+OFSOMStatusConf = Status that allows the creation of an order in the linked entity

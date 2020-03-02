@@ -116,9 +116,13 @@ class Interfaceorderfromsupplierordermulticompanytrigger
         // Put here code you want to execute when a Dolibarr business events occurs.
         // Data and type of action are stored into $object and $action
         // Users
-       if ($action === 'ORDER_SUPPLIER_VALIDATE') {
-        					
-        	define('INC_FROM_DOLIBARR', true);				
+
+        if(!empty($conf->global->OFSOM_STATUS))  $action_OFSOM_STATUS = $conf->global->OFSOM_STATUS;
+        else $action_OFSOM_STATUS = "ORDER_SUPPLIER_VALIDATE";
+
+       if ($action === $action_OFSOM_STATUS) {
+
+           define('INC_FROM_DOLIBARR', true);
         	dol_include_once('/orderfromsupplierordermulticompany/config.php');		
         	
 			$db=& $this->db;

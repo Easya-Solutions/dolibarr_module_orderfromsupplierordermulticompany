@@ -44,6 +44,10 @@ $action = GETPOST('action', 'alpha');
  * Actions
  */
 
+if($action == 'setconststatus') {
+    $res = dolibarr_set_const($db, 'OFSOM_STATUS', GETPOST('OFSOM_STATUS'), 'chaine', 1, '', $conf->entity);
+}
+
 /*
  * View
  */
@@ -124,8 +128,6 @@ dol_fiche_head(
 	
 	$html=new Form($db);
 	$m=new ActionsMulticompany($db);
-	  
-	
 	
 	foreach($TLink as $link) {
 					
@@ -148,7 +150,31 @@ dol_fiche_head(
 	
 	echo '<div class="tabsAction">'. $form->btsubmit("Enregistrer", "bt_submit") .'</div>';
 	
-	echo $form->end_form();	
+	echo $form->end_form();
+
+$form= new Form($db);
+$TTriggers = array("ORDER_SUPPLIER_VALIDATE" => "Valider", "ORDER_SUPPLIER_SUBMIT" => "Commander");
+
+print '<form method="post" action="' . $_SERVER['PHP_SELF'] . '" enctype="multipart/form-data" >';
+print '<input type="hidden" name="token" value="' . $_SESSION['newtoken'] . '">';
+print '<input type="hidden" name="action" value="setconststatus">';
+
+print '<table class="liste">';
+
+print '<tr  class="oddeven"><td>' . $langs->trans("OFSOMStatusConf") . '</td>';
+print '<td align="left">';
+
+print $form->selectarray('OFSOM_STATUS', $TTriggers, $conf->global->OFSOM_STATUS, 0, '');
+
+print '</td>';
+print '<td></td>';
+print '</tr>';
+
+print '</table>';
+
+print '<tr '.$bc[$var].'><td colspan="3" align="right"><input type="submit" class="button" value="' . $langs->trans("Save") . '"></td></tr>';
+
+print '</form>';
 
 llxFooter();
 
