@@ -4,4 +4,5 @@ orderfromsupplierordermulticompanySetupPage = Here the connection between one th
 
 # CONF
 
-OFSOMStatusConf = Status that allows the creation of an order in the linked entity
+OFSOMStatusConf = Status of a supplier order which allows the creation of a linked order
+OFSOMLinkStatusSupplierOrderOrderChild = When receiving a supplier order, classify the linked customer orders as "Processed"

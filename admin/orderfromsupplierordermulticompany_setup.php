@@ -177,7 +177,7 @@ print '</tr>';
 
 print '</form>';
 
-setup_print_on_off('OFSOM_LINK_STATUSSUPPLIERORDER_ORDERCHILD', 'OFSOM_LINK_STATUSSUPPLIERORDER_ORDERCHILD');
+setup_print_on_off('OFSOM_LINK_STATUSSUPPLIERORDER_ORDERCHILD', $langs->trans('OFSOMLinkStatusSupplierOrderOrderChild'));
 print '</table>';
 
 
