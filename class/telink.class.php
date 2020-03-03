@@ -120,6 +120,26 @@
 						 SET entity=".$toEntity."
 						 WHERE rowid=".$o->id ); // on transporte la commande dans l'autre entité
 
+                    //Ajout Contact Livraison du Tiers de la commande générée (nécessite le partage des données entre entités)
+                    $soc = new Societe($db);
+                    $res = $soc->fetch($obj->fk_soc);
+
+                    if($res > 0)
+                    {
+                        $TContacts = $soc->contact_array();
+
+                        foreach ($TContacts as $contactid => $contactname)
+                        {
+                            $contact = new Contact($db);
+                            $res = $contact->fetch($contactid);
+
+                            if($res > 0)
+                            {
+                                if ($contact->roles[$contactid]['code'] == "SHIPPING") $o->add_contact($contactid, 'SHIPPING');
+                            }
+                        }
+                    }
+
 				}
 				
 				
