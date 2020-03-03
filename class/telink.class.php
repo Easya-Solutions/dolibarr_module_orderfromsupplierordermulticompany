@@ -120,6 +120,20 @@
 						 SET entity=".$toEntity."
 						 WHERE rowid=".$o->id ); // on transporte la commande dans l'autre entité
 
+                    //Lien entre la commande fournisseur et la commande client dans la table element_element
+                    $sql = "INSERT INTO ".MAIN_DB_PREFIX."element_element (";
+                    $sql .= "fk_source";
+                    $sql .= ", sourcetype";
+                    $sql .= ", fk_target";
+                    $sql .= ", targettype";
+                    $sql .= ") VALUES (";
+                    $sql .= $idOrderSource;
+                    $sql .= ", 'commandefourn'";
+                    $sql .= ", ".$o->id;
+                    $sql .= ", 'commande'";
+                    $sql .= ")";
+                    $res = $db->query($sql);
+
 				}
 				
 				

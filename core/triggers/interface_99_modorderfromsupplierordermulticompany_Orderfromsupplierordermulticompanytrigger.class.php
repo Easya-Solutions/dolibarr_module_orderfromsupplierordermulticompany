@@ -159,7 +159,48 @@ class Interfaceorderfromsupplierordermulticompanytrigger
                    "Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id
                );
            }
+       } elseif ($action === 'ORDER_SUPPLIER_RECEIVE'){
+
+           require_once DOL_DOCUMENT_ROOT.'/commande/class/commande.class.php';
+
+           if($conf->global->OFSOM_LINK_STATUSSUPPLIERORDER_ORDERCHILD == 'yes')
+           {
+               $sql = "SELECT fk_target FROM ".MAIN_DB_PREFIX."element_element WHERE fk_source =".$object->id." AND targettype = 'commande' AND sourcetype ='commandefourn'";
+               $resql = $this->db->query($sql);
+
+               if ($resql)
+               {
+                   $obj = $this->db->fetch_object($resql);
+                   $id_ordertarget = $obj->fk_target;
+
+                   $commande = new Commande($this->db);
+                   $res = $commande->fetch($id_ordertarget);
+
+                   if ($res > 0)
+                   {
+                       $commande->setStatut(Commande::STATUS_CLOSED);
+                       $res = $commande->update($user);
+                       if ($res > 0)
+                       {
+                           return 1;
+                       }
+                       else
+                       {
+                           return -1;
+                       }
+                   }
+                   else
+                   {
+                       return -1;
+                   }
+               }
+               else
+               {
+                   return -1;
+               }
+           }
        }
+
         return 0;
     }
 }

@@ -45,7 +45,10 @@ $action = GETPOST('action', 'alpha');
  */
 
 if($action == 'setconststatus') {
+
     $res = dolibarr_set_const($db, 'OFSOM_STATUS', GETPOST('OFSOM_STATUS'), 'chaine', 1, '', $conf->entity);
+
+    $res = dolibarr_set_const($db, 'OFSOM_LINK_STATUSSUPPLIERORDER_ORDERCHILD', GETPOST('OFSOM_LINK_STATUSSUPPLIERORDER_ORDERCHILD'), 'chaine', 1, '', $conf->entity);
 }
 
 /*
@@ -168,6 +171,13 @@ print $form->selectarray('OFSOM_STATUS', $TTriggers, $conf->global->OFSOM_STATUS
 
 print '</td>';
 print '<td></td>';
+print '</tr>';
+
+print '<tr class="oddeven">';
+print '<td>'.$langs->trans("OFSOM_LINK_STATUSSUPPLIERORDER_ORDERCHILD").'</td>';
+print '<td width="60" class="right">';
+print $form->selectyesno("OFSOM_LINK_STATUSSUPPLIERORDER_ORDERCHILD", $conf->global->OFSOM_LINK_STATUSSUPPLIERORDER_ORDERCHILD);
+print '</td>';
 print '</tr>';
 
 print '</table>';
