@@ -163,7 +163,7 @@ class Interfaceorderfromsupplierordermulticompanytrigger
 
            require_once DOL_DOCUMENT_ROOT.'/commande/class/commande.class.php';
 
-           if($conf->global->OFSOM_LINK_STATUSSUPPLIERORDER_ORDERCHILD == 'yes')
+           if(!empty($conf->global->OFSOM_LINK_STATUSSUPPLIERORDER_ORDERCHILD))
            {
                $sql = "SELECT fk_target FROM ".MAIN_DB_PREFIX."element_element WHERE fk_source =".$object->id." AND targettype = 'commande' AND sourcetype ='commandefourn'";
                $resql = $this->db->query($sql);
