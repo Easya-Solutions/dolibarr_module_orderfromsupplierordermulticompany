@@ -125,14 +125,6 @@ class Interfaceorderfromsupplierordermulticompanytrigger
 			);
 
 		}
-		else if ($action === 'ORDER_SUPPLIER_APPROVE' && $conf->global->OFSOMC_CREATE_ORDER_TRIGGER === $action)
-		{
-			$this->_cloneOrder($object);
-
-			dol_syslog(
-				"Trigger '" . $this->name . "' for action '$action' launched by " . __FILE__ . ". id=" . $object->id
-			);
-		}
 		else if ($action === 'ORDER_SUPPLIER_SUBMIT' && $conf->global->OFSOMC_CREATE_ORDER_TRIGGER === $action)
 		{
 			$this->_cloneOrder($object);

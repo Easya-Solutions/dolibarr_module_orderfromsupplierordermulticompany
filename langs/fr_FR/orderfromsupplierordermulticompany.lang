@@ -4,5 +4,4 @@ orderfromsupplierordermulticompanySetupPage=Ajoutez ici la liaison entre un tier
 
 OFSOMC_CREATE_ORDER_TRIGGER=Quand créer la commande client depuis la commande fournisseur ?
 OFSOMC_ORDER_SUPPLIER_VALIDATE=A la validation
-OFSOMC_ORDER_SUPPLIER_APPROVE=A l'approbation
 OFSOMC_ORDER_SUPPLIER_SUBMIT=Au passage de commande

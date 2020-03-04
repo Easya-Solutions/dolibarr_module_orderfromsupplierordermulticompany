@@ -191,7 +191,6 @@ dol_fiche_head(
 	print '<input type="hidden" name="action" value="set_OFSOMC_CREATE_ORDER_TRIGGER">';
 	$TActionCreate = array(
 		'ORDER_SUPPLIER_VALIDATE' => $langs->trans('OFSOMC_ORDER_SUPPLIER_VALIDATE')
-		, 'ORDER_SUPPLIER_APPROVE' => $langs->trans('OFSOMC_ORDER_SUPPLIER_APPROVE')
 		, 'ORDER_SUPPLIER_SUBMIT' => $langs->trans('OFSOMC_ORDER_SUPPLIER_SUBMIT'));
 	print $html->selectarray('OFSOMC_CREATE_ORDER_TRIGGER',$TActionCreate, $conf->global->OFSOMC_CREATE_ORDER_TRIGGER);
 	print '<input class="butAction" type="submit" value="'.$langs->trans('Save').'">';
