@@ -1,3 +1,8 @@
 Module104200Name = Commandes depuis les commandes fournisseurs
 Module104200Desc = Créé des commandes clients depuis les commandes fournisseurs d'autres entités
 orderfromsupplierordermulticompanySetupPage=Ajoutez ici la liaison entre un tier et une entité.
+
+OFSOMC_CREATE_ORDER_TRIGGER=Quand créer la commande client depuis la commande fournisseur ?
+OFSOMC_ORDER_SUPPLIER_VALIDATE=A la validation
+OFSOMC_ORDER_SUPPLIER_APPROVE=A l'approbation
+OFSOMC_ORDER_SUPPLIER_SUBMIT=Au passage de commande

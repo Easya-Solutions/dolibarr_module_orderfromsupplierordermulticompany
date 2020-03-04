@@ -116,25 +116,48 @@ class Interfaceorderfromsupplierordermulticompanytrigger
         // Put here code you want to execute when a Dolibarr business events occurs.
         // Data and type of action are stored into $object and $action
         // Users
-       if ($action === 'ORDER_SUPPLIER_VALIDATE') {
-        					
-        	define('INC_FROM_DOLIBARR', true);				
-        	dol_include_once('/orderfromsupplierordermulticompany/config.php');		
-        	
-			$db=& $this->db;
-				
-			$res = $db->query("SELECT fk_entity FROM ".MAIN_DB_PREFIX."thirdparty_entity WHERE entity=".$conf->entity." AND fk_soc=".$object->socid.' AND fk_entity <> '.$conf->entity);	
-			$obj = $db->fetch_object($res);	
-				
-			if($obj->fk_entity>0) {
-				TTELink::cloneOrder($object->id, $obj->fk_entity);	
-			}	
-			
-            dol_syslog(
-                "Trigger '" . $this->name . "' for action '$action' launched by " . __FILE__ . ". id=" . $object->id
-            );
-			
-        } 
-        return 0;
+		if ($action === 'ORDER_SUPPLIER_VALIDATE' && (empty($conf->global->OFSOMC_CREATE_ORDER_TRIGGER) || $conf->global->OFSOMC_CREATE_ORDER_TRIGGER === $action)) {
+
+			$this->_cloneOrder($object);
+
+			dol_syslog(
+				"Trigger '" . $this->name . "' for action '$action' launched by " . __FILE__ . ". id=" . $object->id
+			);
+
+		}
+		else if ($action === 'ORDER_SUPPLIER_APPROVE' && $conf->global->OFSOMC_CREATE_ORDER_TRIGGER === $action)
+		{
+			$this->_cloneOrder($object);
+
+			dol_syslog(
+				"Trigger '" . $this->name . "' for action '$action' launched by " . __FILE__ . ". id=" . $object->id
+			);
+		}
+		else if ($action === 'ORDER_SUPPLIER_SUBMIT' && $conf->global->OFSOMC_CREATE_ORDER_TRIGGER === $action)
+		{
+			$this->_cloneOrder($object);
+
+			dol_syslog(
+				"Trigger '" . $this->name . "' for action '$action' launched by " . __FILE__ . ". id=" . $object->id
+			);
+		}
+		return 0;
     }
+
+    public function _cloneOrder($object)
+	{
+		global $conf;
+
+		define('INC_FROM_DOLIBARR', true);
+		dol_include_once('/orderfromsupplierordermulticompany/config.php');
+
+		$db=& $this->db;
+
+		$res = $db->query("SELECT fk_entity FROM ".MAIN_DB_PREFIX."thirdparty_entity WHERE entity=".$conf->entity." AND fk_soc=".$object->socid.' AND fk_entity <> '.$conf->entity);
+		$obj = $db->fetch_object($res);
+
+		if($obj->fk_entity>0) {
+			TTELink::cloneOrder($object->id, $obj->fk_entity);
+		}
+	}
 }
