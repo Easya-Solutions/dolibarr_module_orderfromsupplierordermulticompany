@@ -28,6 +28,7 @@ require('../config.php');
 // Libraries
 require_once DOL_DOCUMENT_ROOT . "/core/lib/admin.lib.php";
 require_once '../lib/orderfromsupplierordermulticompany.lib.php';
+dol_include_once('abricot/includes/lib/admin.lib.php');
 //require_once "../class/myclass.class.php";
 // Translations
 $langs->load("orderfromsupplierordermulticompany@orderfromsupplierordermulticompany");
@@ -43,6 +44,12 @@ $action = GETPOST('action', 'alpha');
 /*
  * Actions
  */
+
+if($action == 'setconststatus') {
+
+    $res = dolibarr_set_const($db, 'OFSOM_STATUS', GETPOST('OFSOM_STATUS'), 'chaine', 1, '', $conf->entity);
+
+}
 
 /*
  * View
@@ -124,8 +131,6 @@ dol_fiche_head(
 	
 	$html=new Form($db);
 	$m=new ActionsMulticompany($db);
-	  
-	
 	
 	foreach($TLink as $link) {
 					
@@ -148,7 +153,38 @@ dol_fiche_head(
 	
 	echo '<div class="tabsAction">'. $form->btsubmit("Enregistrer", "bt_submit") .'</div>';
 	
-	echo $form->end_form();	
+	echo $form->end_form();
+
+setup_print_title('Paramétrer les gestions de status');
+
+$form= new Form($db);
+$TTriggers = array("ORDER_SUPPLIER_VALIDATE" => "Valider", "ORDER_SUPPLIER_SUBMIT" => "Commander");
+
+print '<table class="liste">';
+
+print '<form method="post" action="' . $_SERVER['PHP_SELF'] . '" enctype="multipart/form-data" >';
+print '<input type="hidden" name="token" value="' . $_SESSION['newtoken'] . '">';
+print '<input type="hidden" name="action" value="setconststatus">';
+
+print '<tr  class="oddeven"><td>' . $langs->trans("OFSOMStatusConf") . '</td>';
+print '<td align="left">';
+
+print $form->selectarray('OFSOM_STATUS', $TTriggers, $conf->global->OFSOM_STATUS, 0, '');
+
+print '</td>';
+print '<td colspan="3" align="right"><input type="submit" class="button" value="' . $langs->trans("Save") . '"></td>';
+print '</tr>';
+
+print '</form>';
+
+setup_print_on_off('OFSOM_LINK_STATUSSUPPLIERORDER_ORDERCHILD', $langs->trans('OFSOMLinkStatusSupplierOrderOrderChild'));
+print '</table>';
+
+
+if (empty($conf->global->OFSOM_STATUS))
+{
+    dolibarr_set_const($db, 'OFSOM_STATUS', 'ORDER_SUPPLIER_VALIDATE', 'chaine', 0, '', $conf->entity);
+}
 
 llxFooter();
 

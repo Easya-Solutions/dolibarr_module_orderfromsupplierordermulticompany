@@ -1,3 +1,8 @@
 Module104200Name = Commandes depuis les commandes fournisseurs
 Module104200Desc = Créé des commandes clients depuis les commandes fournisseurs d'autres entités
 orderfromsupplierordermulticompanySetupPage=Ajoutez ici la liaison entre un tier et une entité.
+
+# CONF
+
+OFSOMStatusConf = Status d'une commande fournisseur qui permet la création d'une commande liée
+OFSOMLinkStatusSupplierOrderOrderChild = Lors de la réception d'une commande fournisseur, classer les commandes client liées en "Traitée"
