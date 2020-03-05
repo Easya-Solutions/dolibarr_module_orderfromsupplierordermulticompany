@@ -116,25 +116,73 @@ class Interfaceorderfromsupplierordermulticompanytrigger
         // Put here code you want to execute when a Dolibarr business events occurs.
         // Data and type of action are stored into $object and $action
         // Users
-       if ($action === 'ORDER_SUPPLIER_VALIDATE') {
-        					
-        	define('INC_FROM_DOLIBARR', true);				
-        	dol_include_once('/orderfromsupplierordermulticompany/config.php');		
-        	
-			$db=& $this->db;
-				
-			$res = $db->query("SELECT fk_entity FROM ".MAIN_DB_PREFIX."thirdparty_entity WHERE entity=".$conf->entity." AND fk_soc=".$object->socid.' AND fk_entity <> '.$conf->entity);	
-			$obj = $db->fetch_object($res);	
-				
-			if($obj->fk_entity>0) {
-				TTELink::cloneOrder($object->id, $obj->fk_entity);	
-			}	
-			
-            dol_syslog(
-                "Trigger '" . $this->name . "' for action '$action' launched by " . __FILE__ . ". id=" . $object->id
-            );
-			
-        } 
+
+       if (($action === 'ORDER_SUPPLIER_VALIDATE' && empty($conf->global->OFSOM_STATUS)) || $action === $conf->global->OFSOM_STATUS) {
+
+          $this->_cloneOrder($object);
+
+       } elseif ($action === 'ORDER_SUPPLIER_RECEIVE'){
+
+           require_once DOL_DOCUMENT_ROOT.'/commande/class/commande.class.php';
+
+           if(!empty($conf->global->OFSOM_LINK_STATUSSUPPLIERORDER_ORDERCHILD))
+           {
+               $sql = "SELECT fk_target FROM ".MAIN_DB_PREFIX."element_element WHERE fk_source =".$object->id." AND targettype = 'commande' AND sourcetype ='commandefourn'";
+               $resql = $this->db->query($sql);
+
+               if ($resql)
+               {
+                   $obj = $this->db->fetch_object($resql);
+                   $id_ordertarget = $obj->fk_target;
+
+                   $commande = new Commande($this->db);
+                   $res = $commande->fetch($id_ordertarget);
+
+                   if ($res > 0)
+                   {
+                       $commande->setStatut(Commande::STATUS_CLOSED);
+                       $res = $commande->update($user);
+                       if ($res > 0)
+                       {
+                           return 1;
+                       }
+                       else
+                       {
+                           return -1;
+                       }
+                   }
+                   else
+                   {
+                       return -1;
+                   }
+               }
+               else
+               {
+                   return -1;
+               }
+           }
+       }
+
         return 0;
+    }
+
+    private function _cloneOrder ($object) {
+
+        global $conf;
+
+        define('INC_FROM_DOLIBARR', true);
+        dol_include_once('/orderfromsupplierordermulticompany/config.php');
+
+        $db=& $this->db;
+
+        $res = $db->query("SELECT fk_entity FROM ".MAIN_DB_PREFIX."thirdparty_entity WHERE entity=".$conf->entity." AND fk_soc=".$object->socid.' AND fk_entity <> '.$conf->entity);
+        $obj = $db->fetch_object($res);
+
+        if ($obj->fk_entity > 0)
+        {
+            TTELink::cloneOrder($object->id, $obj->fk_entity);
+        } else {
+            return -1;
+        }
     }
 }
