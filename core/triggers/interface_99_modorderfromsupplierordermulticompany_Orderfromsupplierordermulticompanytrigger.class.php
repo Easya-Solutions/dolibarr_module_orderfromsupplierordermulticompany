@@ -117,48 +117,10 @@ class Interfaceorderfromsupplierordermulticompanytrigger
         // Data and type of action are stored into $object and $action
         // Users
 
-       if ($action === 'ORDER_SUPPLIER_VALIDATE') {
+       if (($action === 'ORDER_SUPPLIER_VALIDATE' && empty($conf->global->OFSOM_STATUS)) || $action === $conf->global->OFSOM_STATUS) {
 
-           define('INC_FROM_DOLIBARR', true);
-           dol_include_once('/orderfromsupplierordermulticompany/config.php');
+          $this->_cloneOrder($object);
 
-           $db=& $this->db;
-
-           if($conf->global->OFSOM_STATUS == 'ORDER_SUPPLIER_VALIDATE' || empty($conf->global->OFSOM_STATUS))
-           {
-               $res = $db->query("SELECT fk_entity FROM ".MAIN_DB_PREFIX."thirdparty_entity WHERE entity=".$conf->entity." AND fk_soc=".$object->socid.' AND fk_entity <> '.$conf->entity);
-               $obj = $db->fetch_object($res);
-
-               if ($obj->fk_entity > 0)
-               {
-                   TTELink::cloneOrder($object->id, $obj->fk_entity);
-               }
-
-               dol_syslog(
-                   "Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id
-               );
-           }
-       } elseif($action === 'ORDER_SUPPLIER_SUBMIT') {
-
-           define('INC_FROM_DOLIBARR', true);
-           dol_include_once('/orderfromsupplierordermulticompany/config.php');
-
-           $db=& $this->db;
-
-           if($conf->global->OFSOM_STATUS == 'ORDER_SUPPLIER_SUBMIT') {
-
-               $res = $db->query("SELECT fk_entity FROM ".MAIN_DB_PREFIX."thirdparty_entity WHERE entity=".$conf->entity." AND fk_soc=".$object->socid.' AND fk_entity <> '.$conf->entity);
-               $obj = $db->fetch_object($res);
-
-               if ($obj->fk_entity > 0)
-               {
-                   TTELink::cloneOrder($object->id, $obj->fk_entity);
-               }
-
-               dol_syslog(
-                   "Trigger '".$this->name."' for action '$action' launched by ".__FILE__.". id=".$object->id
-               );
-           }
        } elseif ($action === 'ORDER_SUPPLIER_RECEIVE'){
 
            require_once DOL_DOCUMENT_ROOT.'/commande/class/commande.class.php';
@@ -202,5 +164,25 @@ class Interfaceorderfromsupplierordermulticompanytrigger
        }
 
         return 0;
+    }
+
+    private function _cloneOrder ($object) {
+
+        global $conf;
+
+        define('INC_FROM_DOLIBARR', true);
+        dol_include_once('/orderfromsupplierordermulticompany/config.php');
+
+        $db=& $this->db;
+
+        $res = $db->query("SELECT fk_entity FROM ".MAIN_DB_PREFIX."thirdparty_entity WHERE entity=".$conf->entity." AND fk_soc=".$object->socid.' AND fk_entity <> '.$conf->entity);
+        $obj = $db->fetch_object($res);
+
+        if ($obj->fk_entity > 0)
+        {
+            TTELink::cloneOrder($object->id, $obj->fk_entity);
+        } else {
+            return -1;
+        }
     }
 }
