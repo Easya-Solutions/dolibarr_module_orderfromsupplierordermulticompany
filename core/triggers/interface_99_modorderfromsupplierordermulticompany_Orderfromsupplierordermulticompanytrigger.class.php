@@ -127,33 +127,39 @@ class Interfaceorderfromsupplierordermulticompanytrigger
 
            if(!empty($conf->global->OFSOM_LINK_STATUSSUPPLIERORDER_ORDERCHILD))
            {
-               $sql = "SELECT fk_target FROM ".MAIN_DB_PREFIX."element_element WHERE fk_source =".$object->id." AND targettype = 'commande' AND sourcetype ='commandefourn'";
+               $sql = "SELECT fk_target FROM ".MAIN_DB_PREFIX."element_element WHERE fk_source ='".$object->id."' AND targettype = 'commande' AND sourcetype ='commandefourn'";
                $resql = $this->db->query($sql);
 
                if ($resql)
                {
-                   $obj = $this->db->fetch_object($resql);
-                   $id_ordertarget = $obj->fk_target;
-
-                   $commande = new Commande($this->db);
-                   $res = $commande->fetch($id_ordertarget);
-
-                   if ($res > 0)
+                   if($this->db->num_rows($resql) > 0)
                    {
-                       $commande->setStatut(Commande::STATUS_CLOSED);
-                       $res = $commande->update($user);
+                       $obj = $this->db->fetch_object($resql);
+                       $id_ordertarget = $obj->fk_target;
+
+                       $commande = new Commande($this->db);
+                       $res = $commande->fetch($id_ordertarget);
+
                        if ($res > 0)
                        {
-                           return 1;
+                           $commande->setStatut(Commande::STATUS_CLOSED);
+                           $res = $commande->update($user);
+                           if ($res > 0)
+                           {
+                               return 1;
+                           }
+                           else
+                           {
+                               return -1;
+                           }
                        }
                        else
                        {
                            return -1;
                        }
                    }
-                   else
-                   {
-                       return -1;
+                   else {
+                       return 0;
                    }
                }
                else
