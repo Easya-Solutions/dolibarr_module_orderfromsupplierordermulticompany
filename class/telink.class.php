@@ -1,64 +1,64 @@
 <?php
 /*
  * Lien entre thirdpartie et entité
- * 
+ *
  */
 	class TTELink extends TObjetStd {
-		
+
 		function __construct() {
-			
+
 			parent::set_table(MAIN_DB_PREFIX.'thirdparty_entity');
 			parent::add_champs('fk_entity,fk_soc,entity','type=entier;index;');//fk_soc_leaser
-					
+
 			parent::_init_vars();
 			parent::start();
-			
+
 		}
-		
+
 		static function getList(&$ATMdb) {
 			global $conf;
-			
+
 			$Tab=array();
-			
+
 			$Tab = $ATMdb->ExecuteAsArray("SELECT rowid,fk_soc,fk_entity FROM ".MAIN_DB_PREFIX."thirdparty_entity WHERE entity IN (".$conf->entity.") ORDER BY rowid ASC");
-			
+
 			return $Tab;
 		}
-		
+
 		static function cloneOrder($idOrderSource, $toEntity) {
 		global $db,$conf, $user, $mc;
-		
+
 			$cf=new CommandeFournisseur($db);
 			$cf->fetch($idOrderSource);
-			
-			//$res = $db->query("SELECT fk_soc FROM ".MAIN_DB_PREFIX."thirdparty_entity WHERE fk_entity=".$toEntity." AND entity=".$conf->entity );	
+
+			//$res = $db->query("SELECT fk_soc FROM ".MAIN_DB_PREFIX."thirdparty_entity WHERE fk_entity=".$toEntity." AND entity=".$conf->entity );
 			$res = $db->query("SELECT fk_soc FROM ".MAIN_DB_PREFIX."thirdparty_entity WHERE entity=".$toEntity." AND fk_entity=".$conf->entity ); //Attention, cela permet de créer la commande sur la société correspondant à l'entité emettrice
 
-			$obj = $db->fetch_object($res);	
-				
-			if($obj->fk_soc>0) {
-				
-				dol_include_once('/commande/class/commande.class.php');
-				
-				$res2 = $db->query("SELECT rowid FROM ".MAIN_DB_PREFIX."commande
-						 WHERE entity=".$toEntity." AND ref_client='".$cf->ref."'" );	
+			$obj = $db->fetch_object($res);
 
-				$obj2 = $db->fetch_object($res2);	
+			if($obj->fk_soc>0) {
+
+				dol_include_once('/commande/class/commande.class.php');
+
+				$res2 = $db->query("SELECT rowid FROM ".MAIN_DB_PREFIX."commande
+						 WHERE entity=".$toEntity." AND ref_client='".$cf->ref."'" );
+
+				$obj2 = $db->fetch_object($res2);
 				if($obj2->rowid>0) {
 					// la facture commande déjà dans le système en face. On la supprime
 					$o=new Commande($db);
-					
+
 					$previous_entity = $conf->entity;
 					$conf->entity = $toEntity;
 					if($o->fetch($obj2->rowid)>0) {
 						$o->delete($user);
-						
+
 					}
-					
+
 					$conf->entity = $previous_entity;
-					
+
 				}
-				
+
 				$o=new Commande($db);
 				$o->date = date('Y-m-d H:i:s');
 				$o->ref_client = $cf->ref;
@@ -70,7 +70,7 @@
 
 				foreach($cf->lines as $line) {
 					$lineOrder = new OrderLine($db);
-
+					$lineOrder->origin = 'supplierorderdet';
 					$TPropertiesToClone = array('desc', 'subprice', 'qty', 'tva_tx', 'vat_src_code', 'localtax1_tx', 'localtax2_tx', 'fk_product', 'remise_percent', 'info_bits', 'fk_remise_except', 'date_start', 'date_end', 'product_type', 'rang', 'special_code', 'fk_parent_line', 'fk_fournprice', 'pa_ht', 'label', 'array_options', 'fk_unit', 'id');
 
 					foreach($TPropertiesToClone as $property) {
@@ -86,7 +86,7 @@
 				}
 
 				if($o->create($user)<0) {
-					
+
 					var_dump($o);
 					exit("Erreur création commande");
 				}
@@ -99,7 +99,7 @@
 
 						dol_include_once('/nomenclature/class/nomenclature.class.php');
 						$PDOdb = new TPDOdb;
-						
+
 						foreach($cf->lines as $k=>&$line) {
 							$n=new TNomenclature;
 							$n->loadByObjectId($PDOdb, $line->id, $cf->element);
@@ -109,10 +109,10 @@
 								$n->object_type = $o->element;
 								$n->save($PDOdb);
 							}
-							
-						}		
-							
-						
+
+						}
+
+
 					}
 
 					// Le changement d'entité doit se faire après le changement d'entité, sinon, le fetch échoue
@@ -135,16 +135,16 @@
                     $res = $db->query($sql);
 
 				}
-				
-				
+
+
                                 if(!empty($conf->global->OFSOM_DONT_FORCE_BUY_PRICE_WITH_SELL_PRICE)) $conf->global->ForceBuyingPriceIfNull = $oldval;
-				
+
 			}
-			
-			
-			
-			
+
+
+
+
 		}
-		
-		
+
+
 	}
