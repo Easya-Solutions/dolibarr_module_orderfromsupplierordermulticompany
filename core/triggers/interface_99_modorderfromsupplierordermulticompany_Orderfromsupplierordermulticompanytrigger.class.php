@@ -142,7 +142,11 @@ class Interfaceorderfromsupplierordermulticompanytrigger
 
                        if ($res > 0)
                        {
-                           $commande->setStatut(Commande::STATUS_CLOSED);
+                           if($object->statut == 4){
+                               $commande->setStatut(Commande::STATUS_SHIPMENTONPROCESS);
+                           } else {
+                               $commande->setStatut(Commande::STATUS_CLOSED);
+                           }
                            $res = $commande->update($user);
                            if ($res > 0)
                            {
