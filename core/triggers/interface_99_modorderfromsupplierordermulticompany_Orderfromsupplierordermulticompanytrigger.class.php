@@ -142,7 +142,7 @@ class Interfaceorderfromsupplierordermulticompanytrigger
 
                        if ($res > 0)
                        {
-                           if($object->statut == 4){
+                           if($object->statut == CommandeFournisseur::STATUS_RECEIVED_PARTIALLY){
                                $commande->setStatut(Commande::STATUS_SHIPMENTONPROCESS);
                            } else {
                                $commande->setStatut(Commande::STATUS_CLOSED);
