@@ -172,6 +172,80 @@ class Interfaceorderfromsupplierordermulticompanytrigger
                }
            }
        }
+       elseif ($action === 'LINEORDER_SUPPLIER_DISPATCH'){
+
+           require_once DOL_DOCUMENT_ROOT.'/commande/class/commande.class.php';
+           require_once DOL_DOCUMENT_ROOT.'/fourn/class/fournisseur.commande.dispatch.class.php';
+
+           if(!empty($conf->global->OFSOM_LINK_STATUSSUPPLIERORDER_ORDERCHILD))
+           {
+
+               $error = 0;
+
+               //récup id dispatch créé
+               $sql = "SELECT MAX(rowid) as id FROM ".MAIN_DB_PREFIX."commande_fournisseur_dispatch";
+               $resql = $this->db->query($sql);
+
+               if ($resql)
+               {
+
+                   $obj = $this->db->fetch_object($resql);
+
+                   //récup toutes les infos du dispatch créé
+                   $supplierorderdispatch = new CommandeFournisseurDispatch($this->db);
+                   $res = $supplierorderdispatch->fetch($obj->id);
+
+                   if($res < 0) $error++;
+
+
+               } else
+               {
+                   $error++;
+               }
+
+               //récup commande client liée à la commande fourn
+               if(!$error)
+               {
+                   $sql = "SELECT fk_target FROM ".MAIN_DB_PREFIX."element_element WHERE fk_source ='".$object->id."' AND targettype = 'commande' AND sourcetype ='commandefourn'";
+                   $resql = $this->db->query($sql);
+
+                   if ($resql)
+                   {
+                       if ($this->db->num_rows($resql) > 0)
+                       {
+                           $obj = $this->db->fetch_object($resql);
+                           $id_ordertarget = $obj->fk_target;
+
+                           $commande = new Commande($this->db);
+                           $res = $commande->fetch($id_ordertarget);
+
+                           if($res < 0) $error++;
+                       }
+                   } else
+                   {
+                       $error++;
+                   }
+               }
+
+               if(!$error)
+               {
+                   $commande->fetchObjectLinked();
+
+                   if(!empty($commande->linkedObjects['order_supplier'])) {
+
+                       foreach($commande->linkedObjectsIds['order_supplier'] as $key=>$commandeFournChildId){
+
+                           $commandeFournChild = new CommandeFournisseur($this->db);
+                           $res = $commandeFournChild->fetch($commandeFournChildId);
+
+                           var_dump($commandeFournChild); exit;
+
+
+                       }
+                   }
+               }
+           }
+       }
        else if ($action === 'LINEORDER_UPDATE' && !empty($conf->global->OFSOM_UPDATE_LINE_SOURCE)) {
        	if($object->oldline->qty != $object->qty || $object->oldline->subprice != $object->subprice) {
 	        $conf->supplierorderdet->enabled = 1;
