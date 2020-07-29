@@ -174,6 +174,8 @@ class Interfaceorderfromsupplierordermulticompanytrigger
        }
        elseif ($action === 'LINEORDER_SUPPLIER_DISPATCH'){
 
+           global $conf, $user;
+
            require_once DOL_DOCUMENT_ROOT.'/commande/class/commande.class.php';
            require_once DOL_DOCUMENT_ROOT.'/fourn/class/fournisseur.commande.dispatch.class.php';
 
@@ -195,56 +197,107 @@ class Interfaceorderfromsupplierordermulticompanytrigger
                    $supplierorderdispatch = new CommandeFournisseurDispatch($this->db);
                    $res = $supplierorderdispatch->fetch($obj->id);
 
-                   if($res < 0) $error++;
+                   $qty = $supplierorderdispatch->qty;
+
+                   if ($res < 0) $error++;
 
 
-               } else
+               }
+               else
                {
                    $error++;
                }
 
-               //récup commande client liée à la commande fourn
-               if(!$error)
+               if ($supplierorderdispatch->qty > 0)
                {
-                   $sql = "SELECT fk_target FROM ".MAIN_DB_PREFIX."element_element WHERE fk_source ='".$object->id."' AND targettype = 'commande' AND sourcetype ='commandefourn'";
-                   $resql = $this->db->query($sql);
-
-                   if ($resql)
+                   //récup commande client liée à la commande fourn
+                   if (!$error)
                    {
-                       if ($this->db->num_rows($resql) > 0)
+                       $sql = "SELECT fk_target FROM ".MAIN_DB_PREFIX."element_element WHERE fk_source ='".$object->id."' AND targettype = 'commande' AND sourcetype ='commandefourn'";
+                       $resql = $this->db->query($sql);
+
+                       if ($resql)
                        {
-                           $obj = $this->db->fetch_object($resql);
-                           $id_ordertarget = $obj->fk_target;
+                           if ($this->db->num_rows($resql) > 0)
+                           {
+                               $obj = $this->db->fetch_object($resql);
+                               $id_ordertarget = $obj->fk_target;
 
-                           $commande = new Commande($this->db);
-                           $res = $commande->fetch($id_ordertarget);
+                               $commande = new Commande($this->db);
+                               $res = $commande->fetch($id_ordertarget);
 
-                           if($res < 0) $error++;
+                               if ($res < 0) $error++;
+                           }
                        }
-                   } else
+                       else
+                       {
+                           $error++;
+                       }
+                   }
+
+                   if (!$error)
                    {
-                       $error++;
-                   }
-               }
 
-               if(!$error)
-               {
-                   $commande->fetchObjectLinked();
+                       //récu commandes fourn enfant de la commande client
+                       if (!empty($commande)) $commande->fetchObjectLinked();
 
-                   if(!empty($commande->linkedObjects['order_supplier'])) {
+                       if (!empty($commande->linkedObjects['order_supplier']))
+                       {
+                           while($qty > 0)
+                           {
+                               //pour chaque commande fourn enfant
+                               foreach ($commande->linkedObjectsIds['order_supplier'] as $key => $commandeFournChildId)
+                               {
+                                   $commandeFournChild = new CommandeFournisseur($this->db);
+                                   $res = $commandeFournChild->fetch($commandeFournChildId);
 
-                       foreach($commande->linkedObjectsIds['order_supplier'] as $key=>$commandeFournChildId){
+                                   if ($res < 0) $error++;
 
-                           $commandeFournChild = new CommandeFournisseur($this->db);
-                           $res = $commandeFournChild->fetch($commandeFournChildId);
+                                   if (!$error)
+                                   {
+                                       $commandeFournChild->fetch_lines();
 
-                           var_dump($commandeFournChild); exit;
+                                       //pour chaque ligne de la commande fourn enfant
+                                       foreach ($commandeFournChild->lines as $line)
+                                       {
+                                           if ($line->fk_product == $supplierorderdispatch->fk_product)
+                                           {
+                                               $sql = "SELECT SUM(qty) as qty FROM ".MAIN_DB_PREFIX."commande_fournisseur_dispatch WHERE fk_commande = '".$commandeFournChild->id."' AND fk_product = '".$supplierorderdispatch->fk_product."'";
+                                               $resql = $this->db->query($sql);
+
+                                               if ($resql)
+                                               {
+                                                   $obj = $this->db->fetch_object($resql);
+                                                   $qtydispatched = $obj->qty;
+                                                   $maxqtytodispatch = $line->qty;
+
+                                                   $qtytodispatch = $maxqtytodispatch - $qtydispatched;
+
+                                                   if($qtytodispatch <= 0) continue;
+                                               }
 
 
+                                               $res = $commandeFournChild->dispatchProduct($user, $supplierorderdispatch->fk_product, $qtytodispatch, $supplierorderdispatch->fk_entrepot, '', '', '', '', '', $line->id);
+
+                                               if($res < 0 ) $error++;
+                                               else {
+                                                   $commandeFournChild->calcAndSetStatusDispatch($user);
+                                                   $qty = $qty - $qtytodispatch;
+                                               }
+                                           }
+                                       }
+                                   }
+                               }
+                           }
                        }
                    }
                }
+
+               if(!$error) return 1;
+               else return -1;
            }
+
+           return 0;
        }
        else if ($action === 'LINEORDER_UPDATE' && !empty($conf->global->OFSOM_UPDATE_LINE_SOURCE)) {
        	if($object->oldline->qty != $object->qty || $object->oldline->subprice != $object->subprice) {
