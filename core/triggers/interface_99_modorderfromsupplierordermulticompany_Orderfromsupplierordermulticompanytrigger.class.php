@@ -181,22 +181,21 @@ class Interfaceorderfromsupplierordermulticompanytrigger
 
            if(!empty($conf->global->OFSOM_LINK_STATUSSUPPLIERORDER_ORDERCHILD))
            {
-
                $error = 0;
 
-               //récup id dispatch créé
+               //récup réception créée
                $sql = "SELECT MAX(rowid) as id FROM ".MAIN_DB_PREFIX."commande_fournisseur_dispatch";
                $resql = $this->db->query($sql);
 
                if ($resql)
                {
-
                    $obj = $this->db->fetch_object($resql);
 
-                   //récup toutes les infos du dispatch créé
+                   //récup toutes les infos de la réception créé
                    $supplierorderdispatch = new CommandeFournisseurDispatch($this->db);
                    $res = $supplierorderdispatch->fetch($obj->id);
 
+                   //on enregistré la quantité réceptionnée
                    $qty = $supplierorderdispatch->qty;
 
                    if ($res < 0) $error++;
@@ -237,50 +236,54 @@ class Interfaceorderfromsupplierordermulticompanytrigger
 
                    if (!$error)
                    {
-
-                       //récu commandes fourn enfant de la commande client
+                       //récup commandes fourn enfant de la commande client
                        if (!empty($commande)) $commande->fetchObjectLinked();
 
                        if (!empty($commande->linkedObjects['order_supplier']))
                        {
-                           while($qty > 0)
+                           //pour chaque commande fourn enfant
+                           foreach ($commande->linkedObjectsIds['order_supplier'] as $key => $commandeFournChildId)
                            {
-                               //pour chaque commande fourn enfant
-                               foreach ($commande->linkedObjectsIds['order_supplier'] as $key => $commandeFournChildId)
+                               $commandeFournChild = new CommandeFournisseur($this->db);
+                               $res = $commandeFournChild->fetch($commandeFournChildId);
+
+                               if ($res < 0) $error++;
+
+                               if (!$error)
                                {
-                                   $commandeFournChild = new CommandeFournisseur($this->db);
-                                   $res = $commandeFournChild->fetch($commandeFournChildId);
+                                   $commandeFournChild->fetch_lines();
 
-                                   if ($res < 0) $error++;
-
-                                   if (!$error)
+                                   //pour chaque ligne de la commande fourn enfant
+                                   foreach ($commandeFournChild->lines as $line)
                                    {
-                                       $commandeFournChild->fetch_lines();
-
-                                       //pour chaque ligne de la commande fourn enfant
-                                       foreach ($commandeFournChild->lines as $line)
+                                       //si le produit de la ligne correspond au produit réceptionné par la commande fournisseur d'origine alors on traite
+                                       if ($line->fk_product == $supplierorderdispatch->fk_product)
                                        {
-                                           if ($line->fk_product == $supplierorderdispatch->fk_product)
+                                           //on vérifie ce qui a déjà été réceptionné dans la commande fourn enfant
+                                           $sql = "SELECT SUM(qty) as qty FROM ".MAIN_DB_PREFIX."commande_fournisseur_dispatch WHERE fk_commande = '".$commandeFournChild->id."' AND fk_product = '".$supplierorderdispatch->fk_product."'";
+                                           $resql = $this->db->query($sql);
+
+                                           if ($resql)
                                            {
-                                               $sql = "SELECT SUM(qty) as qty FROM ".MAIN_DB_PREFIX."commande_fournisseur_dispatch WHERE fk_commande = '".$commandeFournChild->id."' AND fk_product = '".$supplierorderdispatch->fk_product."'";
-                                               $resql = $this->db->query($sql);
+                                               $obj = $this->db->fetch_object($resql);
+                                               $qtydispatched = $obj->qty;      //quantité déjà réceptionnée dans la commande fourn enfant
+                                               $maxqtytodispatch = $line->qty;  //qunatité maximum que l'on peut receptionner
 
-                                               if ($resql)
-                                               {
-                                                   $obj = $this->db->fetch_object($resql);
-                                                   $qtydispatched = $obj->qty;
-                                                   $maxqtytodispatch = $line->qty;
+                                               $qtytodispatch = $maxqtytodispatch - $qtydispatched;     //quantité qu'il reste à receptionner
 
-                                                   $qtytodispatch = $maxqtytodispatch - $qtydispatched;
+                                               if($qtytodispatch <= 0) continue;                        //si il n'y a plus rien à réceptionner pour ce produit et cette commande, alors on passe à la commande suivante
+                                           } else {
+                                               $error++;
+                                           }
 
-                                                   if($qtytodispatch <= 0) continue;
-                                               }
-
-
+                                           if(!$error)
+                                           {
+                                               //on réceptionne le produit pour la commande fourn enfant
                                                $res = $commandeFournChild->dispatchProduct($user, $supplierorderdispatch->fk_product, $qtytodispatch, $supplierorderdispatch->fk_entrepot, '', '', '', '', '', $line->id);
 
-                                               if($res < 0 ) $error++;
-                                               else {
+                                               if ($res < 0) $error++;
+                                               else{
+                                                   //on change le statut de la commande fourn enfant suivant ce qui a été receptionné
                                                    $commandeFournChild->calcAndSetStatusDispatch($user);
                                                    $qty = $qty - $qtytodispatch;
                                                }
