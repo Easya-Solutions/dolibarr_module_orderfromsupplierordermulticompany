@@ -278,8 +278,14 @@ class Interfaceorderfromsupplierordermulticompanytrigger
 
                                            if(!$error)
                                            {
+
+                                               //on modifie la conf provisoirement pour pas qu'il y ai de mouvement de stock
+                                               if ($conf->global->STOCK_CALCULATE_ON_SUPPLIER_DISPATCH_ORDER) $conf->global->STOCK_CALCULATE_ON_SUPPLIER_DISPATCH_ORDER = 0;
+
                                                //on réceptionne le produit pour la commande fourn enfant
-                                               $res = $commandeFournChild->dispatchProduct($user, $supplierorderdispatch->fk_product, $qtytodispatch, $supplierorderdispatch->fk_entrepot, '', '', '', '', '', $line->id);
+                                               $res = $commandeFournChild->dispatchProduct($user, $supplierorderdispatch->fk_product, $qtytodispatch, $supplierorderdispatch->fk_entrepot, '', '', '', '', '', $line->id, 1);
+
+                                               if(empty($conf->global->STOCK_CALCULATE_ON_SUPPLIER_DISPATCH_ORDER)) $conf->global->STOCK_CALCULATE_ON_SUPPLIER_DISPATCH_ORDER = 1;
 
                                                if ($res < 0) $error++;
                                                else{
