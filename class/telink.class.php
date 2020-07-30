@@ -77,6 +77,28 @@
 						$lineOrder->{ $property } = $line->{ $property };
 					}
 
+					if ($line->fk_product)
+					{
+						$producttmp=new ProductFournisseur($db);
+						$ret = $producttmp->fetch($line->fk_product);
+
+						if ($ret > 0)
+						{
+							$lineOrder->pa_ht = $producttmp->cost_price; // cout de revient
+
+							if ($conf->global->MARGIN_TYPE == '1') // best fournprice
+							{
+								$ret = $producttmp->find_min_price_product_fournisseur($line->fk_product, $line->qty);
+								if ($ret > 0) $lineOrder->pa_ht = $producttmp->fourn_unitprice;
+							}
+							else if ($conf->global->MARGIN_TYPE == 'pmp' &&  !empty($conf->stock->enabled)) // pmp
+							{
+								$lineOrder->pa_ht = $producttmp->pmp;
+							}
+						}
+
+					}
+
 					$o->lines[] = $lineOrder;
 				}
 
