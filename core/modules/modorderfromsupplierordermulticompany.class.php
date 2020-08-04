@@ -61,7 +61,7 @@ class modorderfromsupplierordermulticompany extends DolibarrModules
         // (where XXX is value of numeric property 'numero' of module)
         $this->description = "Description of module orderfromsupplierordermulticompany";
         // Possible values for version are: 'development', 'experimental' or version
-        $this->version = '2.1.0';
+        $this->version = '2.1.1';
         // Key used in llx_const table to save module status enabled/disabled
         // (where MYMODULE is value of property name of module in uppercase)
         $this->const_name = 'MAIN_MODULE_' . strtoupper($this->name);
@@ -437,12 +437,12 @@ class modorderfromsupplierordermulticompany extends DolibarrModules
 
         $result = $this->loadTables();
 
-		define('INC_FROM_DOLIBARR', true);				
-        dol_include_once('/orderfromsupplierordermulticompany/config.php');		
+		define('INC_FROM_DOLIBARR', true);
+        dol_include_once('/orderfromsupplierordermulticompany/config.php');
 
         $PDOdb=new TPDOdb;
 		$PDOdb->db->debug=true;
-		
+
 		$o=new TTELink($db);
 		$o->init_db_by_vars($PDOdb);
 
