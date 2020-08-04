@@ -270,6 +270,7 @@ class Interfaceorderfromsupplierordermulticompanytrigger
                                                $maxqtytodispatch = $line->qty;  //qunatité maximum que l'on peut receptionner
 
                                                $qtytodispatch = $maxqtytodispatch - $qtydispatched;     //quantité qu'il reste à receptionner
+                                               if ($qtytodispatch > $supplierorderdispatch->qty) $qtytodispatch = $supplierorderdispatch->qty;
 
                                                if($qtytodispatch <= 0) continue;                        //si il n'y a plus rien à réceptionner pour ce produit et cette commande, alors on passe à la commande suivante
                                            } else {
