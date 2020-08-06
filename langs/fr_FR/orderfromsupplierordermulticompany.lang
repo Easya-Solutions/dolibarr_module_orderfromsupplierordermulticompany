@@ -8,3 +8,5 @@ orderfromsupplierordermulticompanySetup=Créé des commandes clients depuis les 
 OFSOMStatusConf = Status d'une commande fournisseur qui permet la création d'une commande liée
 OFSOMLinkStatusSupplierOrderOrderChild = Lors de la réception d'une commande fournisseur, classer les commandes client liées en "Traitée"
 OFSOMUpdateLineSource = Après modification du prix d'achat ou quantité sur la ligne commande client, met à jour la ligne sur la commande fournisseur associée
+
+OFSOMErrorBadStatusOrder = La commande fournisseur %s de l'entité mére n'est pas dans un statut permettant la reception de votre commande fournisseur à vous
