@@ -361,6 +361,19 @@ class Interfaceorderfromsupplierordermulticompanytrigger
 				$object->add_object_linked($object->origin, $object->origin_id);
 		} else if ($action === 'LINEORDER_DELETE') {
 			$object->deleteObjectLinked();
+		} else if ($action === 'ORDER_MODIFY' && !empty($object->oldcopy) && $object->oldcopy->date_livraison != $object->date_livraison) {
+			//Maj auto date de livraison
+			$conf->commandefourn = new stdClass;
+			$conf->commandefourn->enabled = 1;
+			$object->fetchObjectLinked(null, 'commandefourn', $object->id, $object->element, 'OR', 1, 'sourcetype', 0);
+			if (!empty($object->linkedObjectsIds['commandefourn'])) {
+				dol_include_once('/fourn/class/fournisseur.commande.class.php');
+				$fkSupplierOrder = array_shift($object->linkedObjectsIds['commandefourn']);
+				$supplierOrder = new CommandeFournisseur($object->db);
+				$supplierOrder->fetch($fkSupplierOrder);
+				$supplierOrder->set_date_livraison($user, $object->date_livraison);
+
+			}
 		}
 
 		return 0;
