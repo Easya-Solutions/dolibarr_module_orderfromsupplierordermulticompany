@@ -179,6 +179,7 @@ print '</form>';
 
 setup_print_on_off('OFSOM_LINK_STATUSSUPPLIERORDER_ORDERCHILD', $langs->trans('OFSOMLinkStatusSupplierOrderOrderChild'));
 setup_print_on_off('OFSOM_UPDATE_LINE_SOURCE', $langs->trans('OFSOMUpdateLineSource'));
+setup_print_on_off('OFSOM_UPDATE_ORDER_SOURCE', $langs->trans('OFSOMUpdateOrderSource'));
 
 print '</table>';
 

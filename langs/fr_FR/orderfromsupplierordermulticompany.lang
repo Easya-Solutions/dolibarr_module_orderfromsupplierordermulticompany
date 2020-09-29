@@ -10,3 +10,5 @@ OFSOMLinkStatusSupplierOrderOrderChild = Lors de la réception d'une commande fo
 OFSOMUpdateLineSource = Après modification du prix d'achat ou quantité sur la ligne commande client, met à jour la ligne sur la commande fournisseur associée
 
 OFSOMErrorBadStatusOrder = La commande fournisseur %s de l'entité mére n'est pas dans un statut permettant la reception de votre commande fournisseur à vous
+
+OFSOMUpdateOrderSource = Après ajout ou suppression d'une ligne sur la commande client, ajoute ou supprime la ligne sur la commande fournisseur source

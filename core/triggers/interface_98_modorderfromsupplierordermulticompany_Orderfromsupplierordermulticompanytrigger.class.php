@@ -357,9 +357,48 @@ class Interfaceorderfromsupplierordermulticompanytrigger
 
 			}
 		} else if ($action === 'LINEORDER_INSERT') {
-			if (!empty($object->origin_id))
-				$object->add_object_linked($object->origin, $object->origin_id);
+			if (!empty($object->origin_id)) $object->add_object_linked($object->origin, $object->origin_id);
+
+			if (!empty($conf->global->OFSOM_UPDATE_ORDER_SOURCE) && $object->origin != 'supplierorderdet') {
+				$conf->commandefourn = new stdClass();
+				$conf->commandefourn->enabled = 1;
+
+				$commande = new Commande($object->db);
+				$res = $commande->fetch($object->fk_commande);
+				if($res > 0) {
+					$commande->fetchObjectLinked();
+					if(!empty($commande->linkedObjectsIds['commandefourn'])) {
+						dol_include_once('/fourn/class/fournisseur.commande.class.php');
+
+						$supplierOrderId = array_shift($commande->linkedObjectsIds['commandefourn']);
+						$supplierOrder = new CommandeFournisseur($object->db);
+						$res = $supplierOrder->fetch($supplierOrderId);
+						if($res > 0) {
+							$supplierOrder->statut = CommandeFournisseur::STATUS_DRAFT;
+							$fk_newline = $supplierOrder->addline($object->desc, $object->subprice, $object->qty, $object->tva_tx, $object->localtax1_tx, $object->localtax2_tx, $object->fk_product, 0, '', $object->remise_percent, 'HT', $object->total_ht, $object->product_type, $object->info_bits, false, $object->date_start, $object->date_end, $object->array_options, $object->fk_unit,0, '',0);
+							if($fk_newline > 0) $object->add_object_linked('supplierorderdet', $fk_newline);
+						}
+					}
+				}
+
+				unset($conf->commandefourn);
+			}
 		} else if ($action === 'LINEORDER_DELETE') {
+			if (!empty($conf->global->OFSOM_UPDATE_ORDER_SOURCE)) {
+				$conf->supplierorderdet = new stdClass();
+				$conf->supplierorderdet->enabled = 1;
+
+				$object->fetchObjectLinked(null, null, $object->id, $object->element, 'OR', 1, 'sourcetype', 0);
+				if (!empty($object->linkedObjectsIds['supplierorderdet'])) {
+					dol_include_once('/fourn/class/fournisseur.commande.class.php');
+
+					$supplierOrderLineId = array_shift($object->linkedObjectsIds['supplierorderdet']);
+					$supplierOrderLine = new CommandeFournisseurLigne($object->db);
+					if ($supplierOrderLine->fetch($supplierOrderLineId) > 0) $supplierOrderLine->delete();
+				}
+
+				unset($conf->supplierorderdet);
+			}
 			$object->deleteObjectLinked();
 		} else if ($action === 'ORDER_MODIFY' && !empty($object->oldcopy) && $object->oldcopy->date_livraison != $object->date_livraison) {
 			//Maj auto date de livraison
