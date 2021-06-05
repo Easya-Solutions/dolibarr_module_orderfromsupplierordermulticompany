@@ -1,172 +1,190 @@
 <?php
+
 /*
  * Lien entre thirdpartie et entité
  *
  */
-	class TTELink extends TObjetStd {
 
-		function __construct() {
+class TTELink extends TObjetStd
+{
 
-			parent::set_table(MAIN_DB_PREFIX.'thirdparty_entity');
-			parent::add_champs('fk_entity,fk_soc,entity','type=entier;index;');//fk_soc_leaser
+	function __construct()
+	{
 
-			parent::_init_vars();
-			parent::start();
+		parent::set_table(MAIN_DB_PREFIX . 'thirdparty_entity');
+		parent::add_champs('fk_entity,fk_soc,entity', 'type=entier;index;');//fk_soc_leaser
 
-		}
+		parent::_init_vars();
+		parent::start();
 
-		static function getList(&$ATMdb) {
-			global $conf;
+	}
 
-			$Tab=array();
+	static function getList(&$ATMdb)
+	{
+		global $conf;
 
-			$Tab = $ATMdb->ExecuteAsArray("SELECT rowid,fk_soc,fk_entity FROM ".MAIN_DB_PREFIX."thirdparty_entity WHERE entity IN (".$conf->entity.") ORDER BY rowid ASC");
+		$Tab = array();
 
-			return $Tab;
-		}
+		$Tab = $ATMdb->ExecuteAsArray("SELECT rowid,fk_soc,fk_entity FROM " . MAIN_DB_PREFIX . "thirdparty_entity WHERE entity IN (" . $conf->entity . ") ORDER BY rowid ASC");
 
-		static function cloneOrder($idOrderSource, $toEntity) {
-		global $db,$conf, $user, $mc;
+		return $Tab;
+	}
 
-			$cf=new CommandeFournisseur($db);
-			$cf->fetch($idOrderSource);
+	static function cloneOrder($idOrderSource, $toEntity)
+	{
+		global $db, $conf, $user, $mc;
 
-			//$res = $db->query("SELECT fk_soc FROM ".MAIN_DB_PREFIX."thirdparty_entity WHERE fk_entity=".$toEntity." AND entity=".$conf->entity );
-			$res = $db->query("SELECT fk_soc FROM ".MAIN_DB_PREFIX."thirdparty_entity WHERE entity=".$toEntity." AND fk_entity=".$conf->entity ); //Attention, cela permet de créer la commande sur la société correspondant à l'entité emettrice
+		$cf = new CommandeFournisseur($db);
+		$cf->fetch($idOrderSource);
 
-			$obj = $db->fetch_object($res);
+		//$res = $db->query("SELECT fk_soc FROM ".MAIN_DB_PREFIX."thirdparty_entity WHERE fk_entity=".$toEntity." AND entity=".$conf->entity );
+		$res = $db->query("SELECT fk_soc FROM " . MAIN_DB_PREFIX . "thirdparty_entity WHERE entity=" . $toEntity . " AND fk_entity=" . $conf->entity); //Attention, cela permet de créer la commande sur la société correspondant à l'entité emettrice
 
-			if($obj->fk_soc>0) {
+		$obj = $db->fetch_object($res);
 
-				dol_include_once('/commande/class/commande.class.php');
+		if ($obj->fk_soc > 0) {
 
-				$res2 = $db->query("SELECT rowid FROM ".MAIN_DB_PREFIX."commande
-						 WHERE entity=".$toEntity." AND ref_client='".$cf->ref."'" );
+			dol_include_once('/commande/class/commande.class.php');
 
-				$obj2 = $db->fetch_object($res2);
-				if($obj2->rowid>0) {
-					// la facture commande déjà dans le système en face. On la supprime
-					$o=new Commande($db);
+			$res2 = $db->query("SELECT rowid FROM " . MAIN_DB_PREFIX . "commande
+						 WHERE entity=" . $toEntity . " AND ref_client='" . $cf->ref . "'");
 
-					$previous_entity = $conf->entity;
-					$conf->entity = $toEntity;
-					if($o->fetch($obj2->rowid)>0) {
-						$o->delete($user);
+			$obj2 = $db->fetch_object($res2);
+			if ($obj2->rowid > 0) {
+				// la facture commande déjà dans le système en face. On la supprime
+				$o = new Commande($db);
 
-					}
-
-					$conf->entity = $previous_entity;
-
-				}
-
-				$o=new Commande($db);
-				$o->date = date('Y-m-d H:i:s');
-				$o->ref_client = $cf->ref;
-				$o->socid = $obj->fk_soc;
-
-				$o->fk_project = $cf->fk_project; //TODO check if it's shared project
-
-				$o->lines = array();
-
-				foreach($cf->lines as $line) {
-					$lineOrder = new OrderLine($db);
-					$lineOrder->origin = 'supplierorderdet';
-					$TPropertiesToClone = array('desc', 'subprice', 'qty', 'tva_tx', 'vat_src_code', 'localtax1_tx', 'localtax2_tx', 'fk_product', 'remise_percent', 'info_bits', 'fk_remise_except', 'date_start', 'date_end', 'product_type', 'rang', 'special_code', 'fk_parent_line', 'fk_fournprice', 'pa_ht', 'label', 'array_options', 'fk_unit', 'id');
-
-					foreach($TPropertiesToClone as $property) {
-						$lineOrder->{ $property } = $line->{ $property };
-					}
-
-					if ($line->fk_product)
-					{
-						$producttmp=new ProductFournisseur($db);
-						$ret = $producttmp->fetch($line->fk_product);
-
-						if ($ret > 0)
-						{
-							$lineOrder->pa_ht = $producttmp->cost_price; // cout de revient
-
-							if ($conf->global->MARGIN_TYPE == '1') // best fournprice
-							{
-								$ret = $producttmp->find_min_price_product_fournisseur($line->fk_product, $line->qty);
-								if ($ret > 0) $lineOrder->pa_ht = $producttmp->fourn_unitprice;
-							}
-							else if ($conf->global->MARGIN_TYPE == 'pmp' &&  !empty($conf->stock->enabled)) // pmp
-							{
-								$lineOrder->pa_ht = $producttmp->pmp;
-							}
-						}
-
-					}
-
-					$o->lines[] = $lineOrder;
-				}
-
-				if(!empty($conf->global->OFSOM_DONT_FORCE_BUY_PRICE_WITH_SELL_PRICE)) {
-					$oldval = $conf->global->ForceBuyingPriceIfNull;
-					$conf->global->ForceBuyingPriceIfNull = 0;
-				}
-
-				if($o->create($user)<0) {
-
-					var_dump($o);
-					exit("Erreur création commande");
-				}
-				else{
-
-					if(!empty($conf->nomenclature->enabled)) {
-						$orderID = $o->id;
-						$o = new Commande($db);
-						$res = $o->fetch($orderID); // Rechargement pour récupérer les bons IDs des lignes
-
-						dol_include_once('/nomenclature/class/nomenclature.class.php');
-						$PDOdb = new TPDOdb;
-
-						foreach($cf->lines as $k=>&$line) {
-							$n=new TNomenclature;
-							$n->loadByObjectId($PDOdb, $line->id, $cf->element);
-							if($n->iExist) {
-								$n->reinit();
-								$n->fk_object = $o->lines[$k]->id;
-								$n->object_type = $o->element;
-								$n->save($PDOdb);
-							}
-
-						}
-
-
-					}
-
-					// Le changement d'entité doit se faire après le changement d'entité, sinon, le fetch échoue
-					$res = $db->query("UPDATE ".MAIN_DB_PREFIX."commande
-						 SET entity=".$toEntity."
-						 WHERE rowid=".$o->id ); // on transporte la commande dans l'autre entité
-
-                    //Lien entre la commande fournisseur et la commande client dans la table element_element
-                    $sql = "INSERT INTO ".MAIN_DB_PREFIX."element_element (";
-                    $sql .= "fk_source";
-                    $sql .= ", sourcetype";
-                    $sql .= ", fk_target";
-                    $sql .= ", targettype";
-                    $sql .= ") VALUES (";
-                    $sql .= $idOrderSource;
-                    $sql .= ", 'commandefourn'";
-                    $sql .= ", ".$o->id;
-                    $sql .= ", 'commande'";
-                    $sql .= ")";
-                    $res = $db->query($sql);
+				$previous_entity = $conf->entity;
+				$conf->entity = $toEntity;
+				if ($o->fetch($obj2->rowid) > 0) {
+					$o->delete($user);
 
 				}
 
-
-                                if(!empty($conf->global->OFSOM_DONT_FORCE_BUY_PRICE_WITH_SELL_PRICE)) $conf->global->ForceBuyingPriceIfNull = $oldval;
+				$conf->entity = $previous_entity;
 
 			}
 
+			$o = new Commande($db);
+			$o->date = date('Y-m-d H:i:s');
+			$o->ref_client = $cf->ref;
+			$o->socid = $obj->fk_soc;
 
+			$o->fk_project = $cf->fk_project; //TODO check if it's shared project
 
+			$o->lines = array();
+
+			foreach ($cf->lines as $line) {
+				$lineOrder = new OrderLine($db);
+				$lineOrder->origin = 'supplierorderdet';
+				$TPropertiesToClone = array('desc', 'subprice', 'qty', 'tva_tx', 'vat_src_code', 'localtax1_tx', 'localtax2_tx', 'fk_product', 'remise_percent', 'info_bits', 'fk_remise_except', 'date_start', 'date_end', 'product_type', 'rang', 'special_code', 'fk_parent_line', 'fk_fournprice', 'pa_ht', 'label', 'array_options', 'fk_unit', 'id');
+
+				foreach ($TPropertiesToClone as $property) {
+					$lineOrder->{$property} = $line->{$property};
+				}
+
+				if ($line->fk_product) {
+					$producttmp = new ProductFournisseur($db);
+					$ret = $producttmp->fetch($line->fk_product);
+
+					if ($ret > 0) {
+						$lineOrder->pa_ht = $producttmp->cost_price; // cout de revient
+
+						if ($conf->global->MARGIN_TYPE == '1') // best fournprice
+						{
+							$ret = $producttmp->find_min_price_product_fournisseur($line->fk_product, $line->qty);
+							if ($ret > 0) $lineOrder->pa_ht = $producttmp->fourn_unitprice;
+						} else if ($conf->global->MARGIN_TYPE == 'pmp' && !empty($conf->stock->enabled)) // pmp
+						{
+							$lineOrder->pa_ht = $producttmp->pmp;
+						}
+					}
+
+				}
+
+				$o->lines[] = $lineOrder;
+			}
+
+			if (!empty($conf->global->OFSOM_DONT_FORCE_BUY_PRICE_WITH_SELL_PRICE)) {
+				$oldval = $conf->global->ForceBuyingPriceIfNull;
+				$conf->global->ForceBuyingPriceIfNull = 0;
+			}
+
+			if ($o->create($user) < 0) {
+				var_dump($o);
+				exit("Erreur création commande");
+			} else {
+				if ((float)DOL_VERSION>=14.0) {
+					//Cannot use $o->copy_linked_contact because it copy fk_c_type_contact from object order_supplier but we need order
+					//So We recode the method here
+					$contacts = $cf->liste_contact(-1, 'external');
+					if (!empty($contacts)) {
+						$o->delete_linked_contact('external');
+						foreach ($contacts as $contact)
+						{
+							$sqltypeContact='SELECT rowid FROM '.MAIN_DB_PREFIX.'c_type_contact WHERE element=\''.$o->element.'\'';
+							$sqltypeContact.=' AND source=\''.$o->db->escape($contact['source']).'\'';
+							$sqltypeContact.=' AND code=\''.$o->db->escape($contact['code']).'\'';
+							$resqlCopyContact=$o->db->query($sqltypeContact);
+							if (!$resqlCopyContact) {
+								setEventMessage($o->db->lasterror,'errors');
+							} else {
+								$obj=$o->db->fetch_object($resqlCopyContact);
+								if ($o->add_contact($contact['id'], $obj->rowid, $contact['source']) < 0)
+								{
+									setEventMessage($o->db->lasterror,'errors');
+								}
+							}
+						}
+
+					}
+				}
+
+				if (!empty($conf->nomenclature->enabled)) {
+					$orderID = $o->id;
+					$o = new Commande($db);
+					$res = $o->fetch($orderID); // Rechargement pour récupérer les bons IDs des lignes
+
+					dol_include_once('/nomenclature/class/nomenclature.class.php');
+					$PDOdb = new TPDOdb;
+
+					foreach ($cf->lines as $k => &$line) {
+						$n = new TNomenclature;
+						$n->loadByObjectId($PDOdb, $line->id, $cf->element);
+						if ($n->iExist) {
+							$n->reinit();
+							$n->fk_object = $o->lines[$k]->id;
+							$n->object_type = $o->element;
+							$n->save($PDOdb);
+						}
+
+					}
+				}
+
+				// Le changement d'entité doit se faire après le changement d'entité, sinon, le fetch échoue
+				$res = $db->query("UPDATE " . MAIN_DB_PREFIX . "commande
+						 SET entity=" . $toEntity . "
+						 WHERE rowid=" . $o->id); // on transporte la commande dans l'autre entité
+
+				//Lien entre la commande fournisseur et la commande client dans la table element_element
+				$sql = "INSERT INTO " . MAIN_DB_PREFIX . "element_element (";
+				$sql .= "fk_source";
+				$sql .= ", sourcetype";
+				$sql .= ", fk_target";
+				$sql .= ", targettype";
+				$sql .= ") VALUES (";
+				$sql .= $idOrderSource;
+				$sql .= ", 'commandefourn'";
+				$sql .= ", " . $o->id;
+				$sql .= ", 'commande'";
+				$sql .= ")";
+				$res = $db->query($sql);
+
+			}
+
+			if (!empty($conf->global->OFSOM_DONT_FORCE_BUY_PRICE_WITH_SELL_PRICE)) $conf->global->ForceBuyingPriceIfNull = $oldval;
 
 		}
-
-
 	}
+
+}

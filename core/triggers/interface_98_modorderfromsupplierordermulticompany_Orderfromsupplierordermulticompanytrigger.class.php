@@ -410,7 +410,7 @@ class Interfaceorderfromsupplierordermulticompanytrigger
 				$fkSupplierOrder = array_shift($object->linkedObjectsIds['commandefourn']);
 				$supplierOrder = new CommandeFournisseur($object->db);
 				$supplierOrder->fetch($fkSupplierOrder);
-				$supplierOrder->set_date_livraison($user, $object->date_livraison);
+				$supplierOrder->setDeliveryDate($user, $object->date_livraison);
 
 			}
 		}
