@@ -125,11 +125,32 @@ class Interfaceorderfromsupplierordermulticompanytrigger
 		// Data and type of action are stored into $object and $action
 		// Users
 
+		if ($action === 'ORDER_SUPPLIER_VALIDATE'){
+			/** @var CommandeFournisseur $object */
+			// si l'option de reception auto des produit sur la commande fournisseur de l'entité client alors il faut vérifier si un entrepot de reception est défini dans le cas au la societé founisseur est une entité Dolibarr
+			// Dans ce il faut bloquer la validation si l'entrepot de reception n'est pas fournis
+			if(!empty($conf->global->OFSOM_SET_SUPPLIER_ORDER_RECEIVED_ON_SUPPLIER_SHIPMENT_CLOSED) && empty($object->array_options['options_reception_warehouse'])) {
+				// parceque c'est du TObject .... il faut donc tout transporter
+				define('INC_FROM_DOLIBARR', true);
+				require_once __DIR__ . '/../../config.php';
+				require_once __DIR__ . '/../../class/telink.class.php';
+				$telink = new TTELink();
+				$res = $telink->getSocEntityFromSocId($object->socid);
+				if($res > 0){
+					$this->setError('ReceptionWarehouseNotDefined');
+					return -1;
+				}
+				elseif ($res < 0){
+					$this->setError('ReceptionWarehouseCheckError');
+					return -1;
+				}
+			}
+		}
+
 		if (($action === 'ORDER_SUPPLIER_VALIDATE' && empty($conf->global->OFSOM_STATUS)) || $action === $conf->global->OFSOM_STATUS) {
-
-			$this->_cloneOrder($object);
-
-		} elseif ($action === 'ORDER_SUPPLIER_RECEIVE') {
+			return $this->_cloneOrder($object);
+		}
+		elseif ($action === 'ORDER_SUPPLIER_RECEIVE') {
 
 			require_once DOL_DOCUMENT_ROOT . '/commande/class/commande.class.php';
 
@@ -167,7 +188,8 @@ class Interfaceorderfromsupplierordermulticompanytrigger
 					return -1;
 				}
 			}
-		} elseif ($action === 'LINEORDER_SUPPLIER_DISPATCH') {
+		}
+		elseif ($action === 'LINEORDER_SUPPLIER_DISPATCH') {
 
 			global $conf, $user;
 
@@ -320,7 +342,8 @@ class Interfaceorderfromsupplierordermulticompanytrigger
 			}
 
 			return 0;
-		} else if ($action === 'LINEORDER_UPDATE' && !empty($conf->global->OFSOM_UPDATE_LINE_SOURCE)) {
+		}
+		else if ($action === 'LINEORDER_UPDATE' && !empty($conf->global->OFSOM_UPDATE_LINE_SOURCE)) {
 			if ($object->oldline->qty != $object->qty || $object->oldline->subprice != $object->subprice) {
 				$conf->supplierorderdet->enabled = 1;
 				$object->fetchObjectLinked(null, 'supplierorderdet', $object->id, $object->element, 'OR', 1, 'sourcetype', 0);
@@ -356,7 +379,8 @@ class Interfaceorderfromsupplierordermulticompanytrigger
 				}
 
 			}
-		} else if ($action === 'LINEORDER_INSERT') {
+		}
+		else if ($action === 'LINEORDER_INSERT') {
 			if (!empty($object->origin_id)) $object->add_object_linked($object->origin, $object->origin_id);
 
 			if (!empty($conf->global->OFSOM_UPDATE_ORDER_SOURCE) && $object->origin != 'supplierorderdet') {
@@ -383,7 +407,8 @@ class Interfaceorderfromsupplierordermulticompanytrigger
 
 				unset($conf->commandefourn);
 			}
-		} else if ($action === 'LINEORDER_DELETE') {
+		}
+		else if ($action === 'LINEORDER_DELETE') {
 			if (!empty($conf->global->OFSOM_UPDATE_ORDER_SOURCE)) {
 				$conf->supplierorderdet = new stdClass();
 				$conf->supplierorderdet->enabled = 1;
@@ -400,7 +425,8 @@ class Interfaceorderfromsupplierordermulticompanytrigger
 				unset($conf->supplierorderdet);
 			}
 			$object->deleteObjectLinked();
-		} else if ($action === 'ORDER_MODIFY' && !empty($object->oldcopy) && $object->oldcopy->date_livraison != $object->date_livraison) {
+		}
+		else if ($action === 'ORDER_MODIFY' && !empty($object->oldcopy) && $object->oldcopy->date_livraison != $object->date_livraison) {
 			//Maj auto date de livraison
 			$conf->commandefourn = new stdClass;
 			$conf->commandefourn->enabled = 1;
@@ -419,14 +445,21 @@ class Interfaceorderfromsupplierordermulticompanytrigger
 
 			}
 		}
-
+		else if ($action == 'SHIPPING_CLOSED' && !empty($conf->global->OFSOM_SET_SUPPLIER_ORDER_RECEIVED_ON_SUPPLIER_SHIPMENT_CLOSED))
+		{
+			/** @var Expedition $object */
+			//  Passe la commande fournisseur à reçut (entité A) lors de la cloture de l'expedition (Entité courrante)
+			if(!empty($conf->global->OFSOM_SET_SUPPLIER_ORDER_RECEIVED_ON_SUPPLIER_SHIPMENT_CLOSED)){
+				return $this->receiveSupplierOrderFromShippment($object);
+			}
+		}
 		return 0;
 	}
 
 	private function _cloneOrder($object)
 	{
 
-		global $conf;
+		global $conf, $langs;
 
 		define('INC_FROM_DOLIBARR', true);
 		dol_include_once('/orderfromsupplierordermulticompany/config.php');
@@ -437,9 +470,281 @@ class Interfaceorderfromsupplierordermulticompanytrigger
 		$obj = $db->fetch_object($res);
 
 		if ($obj->fk_entity > 0) {
-			TTELink::cloneOrder($object->id, $obj->fk_entity);
+			$TTELink = new TTELink();
+			$res = $TTELink->cloneOrder($object->id, $obj->fk_entity);
+			$this->setError($TTELink->error);
+			return $res;
 		} else {
+			$this->error = $langs->trans('MissingEntityLink');
 			return -1;
 		}
+	}
+
+	/**
+	 * Passe la commande fournisseur à reçut (entité A) lors de la cloture de l'expedition (Entité courrante)
+	 * @param Expedition $shippment
+	 * @return int|void
+	 */
+	public function receiveSupplierOrderFromShippment($shippment){
+		global $user, $langs;
+		$langs->load('orderfromsupplierordermulticompany@orderfromsupplierordermulticompany');
+		// parceque c'est du TObject .... il faut donc tout transporter
+		define('INC_FROM_DOLIBARR', true);
+		require_once __DIR__ . '/../../config.php';
+		require_once __DIR__ . '/../../class/telink.class.php';
+
+		$TTELink = new TTELink();
+		// Récupération de l'entité correspondant au tiers client de l'expédition,
+		// si il y a bien un lien alors la reception de la commande fournisseur peut commencer
+		// si ce n'est pas configurer alors on fait rien de particulier c'est juste qu'il n'y a pas de lien entre société est entité
+		// et si il y a une erreur ben on la traite
+		$customerId = $TTELink->getSocIdForEntityCustomerFromSupplierEntitySocId($shippment->socid, $shippment->entity);
+		if($customerId > 0) {
+
+
+			$shippment->fetchObjectLinked(null, '', null, '', 'OR', 1, 'sourcetype', 0);
+
+			// Petit tableau pour permettre de faire les receptions de produit
+			$supplierOrderLineAllreadyReceive = array(
+				// Utilisation :
+				//  idSupplierOrder => array(
+				//		idSupplierOrderLine => qty already receive : TODO fetch receive if possible and set this array
+				//	);
+			);
+
+			foreach ($shippment->lines as $line) {
+				/** @var ExpeditionLigne $line */
+
+				if(empty($line->fk_product)){
+					// si pas de fk_product alors pas de stock géré
+					// si pas de stock géré alors pas de stock géré...
+					continue;
+				}
+
+				// les lignes d'expeditions sont lié à une ligne de commande donc il faut charger la ligne de commande
+				$orderLine = $this->getOrderLineFromCache($line->fk_origin_line);
+				if ($orderLine) {
+					// maintenant il est possible d'avoir la commande liée
+					$order = $this->getOrderFromCache($orderLine->fk_commande);
+					if ($order) {
+						// et enfin il devient possible de retrouver la commande fournisseur correspondante
+						$supplierOrderId = $TTELink->getSupplierOrderIdFromOrder($order);
+						if($supplierOrderId>0){
+							$supplierOrder = $this->getSupplierOrderFromCache($supplierOrderId);
+							if($supplierOrder) {
+
+								// Si la commande est déja receptionné ou annulée alors il n'y a rien a faire
+								if(in_array($supplierOrder->statut, array($supplierOrder::STATUS_RECEIVED_COMPLETELY,$supplierOrder::STATUS_CANCELED,$supplierOrder::STATUS_CANCELED_AFTER_ORDER))){
+									continue;
+								}
+
+								// si l'expedition est lié à la commande fourn alors on part du principe qu'elle est receptionné car le lien element elements ne se fait (si rien n'a changé) que à la fin de la reception
+								if(!empty($shippment->linkedObjectsIds['order_supplier']) && in_array($supplierOrder->id, $shippment->linkedObjectsIds['order_supplier'])){
+									continue;
+								}
+
+								// Maintenant il faut faire les receptions des lignes sur la commande fournisseur
+								if(empty($orderLine->array_options)){
+									$orderLine->fetch_optionals();
+								}
+								if(!empty($orderLine->array_options['options_supplier_order_det_source'])){
+									$fk_commandefourndet = intval($orderLine->array_options['options_supplier_order_det_source']);
+
+									// TODO vérifier $fk_commandefourndet fait bien partie des lignes de $supplierOrder
+								}
+								else{
+									$this->setError('LinkMissingBetweenSupplierOrderAndCustomerOrder');
+									return -1;
+								}
+
+
+								if(!empty($line->detail_batch)){
+
+									foreach ($line->detail_batch as $detail_batch) {
+										/** @var ExpeditionLineBatch $detail_batch */
+
+										$dDLC = $detail_batch->eatby;
+										$dDLUO = $detail_batch->sellby;
+										$lot = $detail_batch->batch;
+
+										$movementComment = $langs->trans('ReceiveFromAutoWorkflowForSupplierShipment', $shippment->ref);
+
+										$result = $supplierOrder->dispatchProduct($user, $line->fk_product, $line->qty, $supplierOrder->array_options['options_reception_warehouse'], $orderLine->subprice, $movementComment, $dDLC, $dDLUO, $lot, $fk_commandefourndet);
+										if ($result < 0) {
+											$this->setError($supplierOrder->error);
+											return -1;
+										}
+									}
+								}
+								else{
+									$movementComment = $langs->trans('ReceiveFromAutoWorkflowForSupplierShipment', $shippment->ref);
+
+									$dDLC = $dDLUO = $lot = '';
+									$result = $supplierOrder->dispatchProduct($user, $line->fk_product, $line->qty, $supplierOrder->array_options['options_reception_warehouse'], $orderLine->subprice, $movementComment, $dDLC, $dDLUO, $lot, $fk_commandefourndet);
+									if ($result < 0) {
+										$this->setError($supplierOrder->error);
+										return -1;
+									}
+								}
+							}
+							else{
+								return -1;
+							}
+						}
+						else{
+							$this->setError('SupplierOrderNotFoundFromOrder');
+							return -1;
+						}
+					} else {
+						return -1;
+					}
+				} else {
+					return -1;
+				}
+			}
+
+			$this->clearOrderLineCache();
+			$this->clearOrderCache();
+		}
+		elseif($customerId<0)
+		{
+			// quelque soit le problème il faut stopper et si possible gérer l'erreur
+			$this->setError($TTELink->error);
+			return -1;
+		}
+		else{
+			// pas de correspondance d'entité pour ce client donc il ne faut rien faire
+			return 0;
+		}
+	}
+
+
+	/**
+	 * @param $id
+	 * @return OrderLine object
+	 */
+	public function getOrderLineFromCache($id){
+		global $db;
+
+		$res = $this->getElementFromCache('OrderLine', $id);
+		if($res){
+			return $res;
+		}
+
+		$this->setError('OrderLineNotFetched');
+		return false;
+
+	}
+
+	/**
+	 * @param $id
+	 * @return CommandeFournisseur object
+	 */
+	public function getSupplierOrderFromCache($id){
+		global $db;
+
+		$res = $this->getElementFromCache('CommandeFournisseur', $id);
+		if($res){
+			return $res;
+		}
+
+		$this->setError('SupplierOrderNotFetched');
+		return false;
+
+	}
+
+	/**
+	 * clear Order Lines Cache
+	 */
+	function clearOrderLineCache(){
+		$this->orderLineCache = array();
+	}
+
+	/**
+	 * @param $id
+	 * @return Commande object
+	 */
+	public function getOrderFromCache($id){
+
+		$res = $this->getElementFromCache('Commande', $id);
+		if($res){
+			return $res;
+		}
+
+		$this->setError('OrderNotFetched');
+		return false;
+	}
+
+	/**
+	 * clear Order Cache
+	 */
+	function clearOrderCache(){
+		$this->orderCache = array();
+	}
+
+	public function setError($error) {
+		global $langs;
+
+		if(empty($langs->tab_translate[$error])){
+			$langs->load('orderfromsupplierordermulticompany@orderfromsupplierordermulticompany');
+			$error = $langs->trans($error);
+		}
+
+		$this->error = $error;
+		$this->errors[] = $this->error;
+	}
+
+
+	/**
+	 * @param $id
+	 * @return object
+	 */
+	public function getElementFromCache($element, $id){
+		global $db;
+
+		$id = intval($id);
+
+		$cacheVarName = $element.'Cache';
+
+
+		if(empty($this->{$cacheVarName})){
+			$this->{$cacheVarName} = array();
+		}
+
+		if(!empty($this->{$cacheVarName}[$id])){
+			return $this->{$cacheVarName}[$id];
+		}
+
+		if($element == 'OrderLine') {
+			if (!class_exists('OrderLine')) {
+				require_once DOL_DOCUMENT_ROOT . '/commande/class/commande.class.php';
+			}
+			$object = new OrderLine($db);
+		}
+		elseif($element == 'Commande') {
+			if (!class_exists('Commande')) {
+				require_once DOL_DOCUMENT_ROOT . '/commande/class/commande.class.php';
+			}
+			$object = new Commande($db);
+		}
+		elseif($element == 'CommandeFournisseur') {
+			if (!class_exists('CommandeFournisseur')) {
+				require_once DOL_DOCUMENT_ROOT . '/fourn/class/fournisseur.commande.class.php';
+			}
+			$object = new CommandeFournisseur($db);
+		}
+		else{
+			$this->setError('IncompatibleElement');
+			return false;
+		}
+
+		/** @var commonobject $object */
+
+		if($object->fetch($id)>0){
+			$this->{$cacheVarName}[$id] = $object;
+			return $this->{$cacheVarName}[$id];
+		}
+
+		return false;
 	}
 }

@@ -1,6 +1,6 @@
 Module104200Name = Commandes depuis les commandes fournisseurs multi-company
 Module104200Desc = Créé des commandes clients depuis les commandes fournisseurs d'autres entités
-orderfromsupplierordermulticompanySetupPage=Ajoutez ici la liaison entre un tier et une entité.
+orderfromsupplierordermulticompanySetupPage=Ajoutez ici la correspondance entre un tiers et une entité.
 orderfromsupplierordermulticompanySetup=Créé des commandes clients depuis les commandes fournisseurs d'autres entités
 
 # CONF
@@ -12,3 +12,10 @@ OFSOMUpdateLineSource = Après modification du prix d'achat ou quantité sur la 
 OFSOMErrorBadStatusOrder = La commande fournisseur %s de l'entité mére n'est pas dans un statut permettant la reception de votre commande fournisseur à vous
 
 OFSOMUpdateOrderSource = Après ajout ou suppression d'une ligne sur la commande client, ajoute ou supprime la ligne sur la commande fournisseur source
+OFSOM_SET_SUPPLIER_ORDER_RECEIVED_ON_SUPPLIER_SHIPMENT_CLOSED = Passe la commande fournisseur à reçut (Entité A) lors de la cloture de l'expedition (Entité B)
+OFSOM_SET_SUPPLIER_ORDER_RECEIVED_ON_SUPPLIER_SHIPMENT_CLOSED_HELP = ATTENTION : Le partage des produits entre les entités correspondantes doit être actif
+ThisEntityMappingNeedToBeDonneOnEachEntityListed = La liaison entre les tiers doit être effectuée sur chaque entité pour permettre les echanges bidirectionnels
+
+ReceptionWarehouseNotDefined = Entrepôt de reception auto non défini
+ReceptionWarehouseCheckError = Une erreur c'est produite lors de la vérification de "l'entrepôt de reception auto"
+ReceiveFromAutoWorkflowForSupplierShipment = Reception depuis l'expedition %s du fournisseur

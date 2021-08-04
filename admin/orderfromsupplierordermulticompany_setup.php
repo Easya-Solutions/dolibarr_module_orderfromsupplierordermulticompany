@@ -64,16 +64,21 @@ print_fiche_titre($langs->trans($page_name), $linkback);
 
 // Configuration header
 $head = orderfromsupplierordermulticompanyAdminPrepareHead();
-dol_fiche_head(
+$notab = -1;
+print dol_get_fiche_head(
     $head,
     'settings',
     $langs->trans("Module104200Name"),
-    0,
+	$notab,
     "orderfromsupplierordermulticompany@orderfromsupplierordermulticompany"
 );
 
+print dol_get_fiche_end($notab);
+
 // Setup page goes here
-	echo $langs->trans("orderfromsupplierordermulticompanySetupPage");
+	echo '<h3>'.$langs->trans("orderfromsupplierordermulticompanySetupPage").'</h3>';
+
+	print '<div class="warning" >'.$langs->trans('ThisEntityMappingNeedToBeDonneOnEachEntityListed').'</div>';
 
 	$ATMdb=new TPDOdb;
 	if(isset($_REQUEST['action']) && $_REQUEST['action']=='save') {
@@ -155,13 +160,13 @@ dol_fiche_head(
 
 	echo $form->end_form();
 
-setup_print_title('Paramétrer les gestions de status');
 
 $form= new Form($db);
 $TTriggers = array("ORDER_SUPPLIER_VALIDATE" => "Valider", "ORDER_SUPPLIER_SUBMIT" => "Commander");
 
 print '<table class="liste">';
 
+setup_print_title('Paramétrer les gestions de status');
 print '<form method="post" action="' . $_SERVER['PHP_SELF'] . '" enctype="multipart/form-data" >';
 print '<input type="hidden" name="token" value="' . $_SESSION['newtoken'] . '">';
 print '<input type="hidden" name="action" value="setconststatus">';
@@ -180,6 +185,9 @@ print '</form>';
 setup_print_on_off('OFSOM_LINK_STATUSSUPPLIERORDER_ORDERCHILD', $langs->trans('OFSOMLinkStatusSupplierOrderOrderChild'));
 setup_print_on_off('OFSOM_UPDATE_LINE_SOURCE', $langs->trans('OFSOMUpdateLineSource'));
 setup_print_on_off('OFSOM_UPDATE_ORDER_SOURCE', $langs->trans('OFSOMUpdateOrderSource'));
+
+//  Passe la commande fournisseur à reçut (entité A) lors de la cloture de l'expedition (Entité B)
+setup_print_on_off('OFSOM_SET_SUPPLIER_ORDER_RECEIVED_ON_SUPPLIER_SHIPMENT_CLOSED');
 
 print '</table>';
 
