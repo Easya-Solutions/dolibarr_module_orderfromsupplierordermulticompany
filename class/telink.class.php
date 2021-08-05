@@ -331,9 +331,9 @@ class TTELink extends TObjetStd
 
 	/**
 	 * Permet de recupérer l'Id de la commande client coté entité fournisseur à partir de la commande fournisseur coté entité cliente
-	 * @param CommandeFournisseur $supplierOrder
-	 * @param int $targetEntity entité cible (commande client)
-	 * @param int $targetSocid societé cible (commande client)
+	 * @param CommandeFournisseur $supplierOrder (entité cliente)
+	 * @param int $targetEntity entité cible (entité fournisseur)
+	 * @param int $targetSocid societé cible (coté entité fournisseur)
 	 * @return int 	<=0 if KO, >0 if OK
 	 */
 	public function getOrderIdFromSupplierOrder($supplierOrder, $targetEntity, $targetSocid = false){
