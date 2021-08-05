@@ -489,7 +489,7 @@ class Interfaceorderfromsupplierordermulticompanytrigger
 	}
 
 	/**
-	 * Passe la commande fournisseur à reçut (entité A) lors de la cloture de l'expedition (Entité courrante)
+	 * Passe la commande fournisseur à reçue (entité A) lors de la clôture de l'expédition (Entité courante)
 	 * @param Expedition $shipment
 	 * @return int|void
 	 */
