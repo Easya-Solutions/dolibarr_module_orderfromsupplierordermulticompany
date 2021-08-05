@@ -644,7 +644,7 @@ class Interfaceorderfromsupplierordermulticompanytrigger
 
 					$supplierOrder->loadReceptions();
 
-					// if sommes receptions done, then it must be partially receive
+					// if some receptions done, then it must be partially received
 					$receivePartially = !empty($supplierOrder->receptions);
 
 					// test if completely received
