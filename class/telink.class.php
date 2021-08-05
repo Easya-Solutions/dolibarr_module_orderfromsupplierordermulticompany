@@ -88,7 +88,7 @@ class TTELink extends TObjetStd
 				return $obj->fk_soc;
 			}
 			else{
-				$this->error = $langs->trans('MissingEntityLinkBetwinSoc');
+				$this->error = $langs->trans('MissingEntityLinkBetweenSoc');
 				return 0;
 			}
 		}
@@ -142,7 +142,7 @@ class TTELink extends TObjetStd
 				return $obj->fk_entity;
 			}
 			else{
-				$this->error = $langs->trans('MissingEntityLinkBetwinSoc');
+				$this->error = $langs->trans('MissingEntityLinkBetweenSoc');
 				return 0;
 			}
 		}
