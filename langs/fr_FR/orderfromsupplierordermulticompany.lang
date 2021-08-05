@@ -17,6 +17,6 @@ OFSOM_SET_SUPPLIER_ORDER_RECEIVED_ON_SUPPLIER_SHIPMENT_CLOSED_HELP = ATTENTION :
 ThisEntityMappingNeedToBeDoneOnEachEntityListed = La liaison entre les tiers doit être effectuée sur chaque entité pour permettre les échanges bidirectionnels
 
 ReceptionWarehouseNotDefined = Entrepôt de reception auto non défini
-ReceptionWarehouseCheckError = Une erreur c'est produite lors de la vérification de "l'entrepôt de reception auto"
+ReceptionWarehouseCheckError = Une erreur s'est produite lors de la vérification de "l'entrepôt de réception auto"
 ReceiveFromAutoWorkflowForSupplierShipment = Reception depuis l'expedition %s du fournisseur
 ParamOFSOMStatus = Paramétrer les gestions de statut
