@@ -538,7 +538,7 @@ class Interfaceorderfromsupplierordermulticompanytrigger
 					continue;
 				}
 
-				// les lignes d'expeditions sont lié à une ligne de commande donc il faut charger la ligne de commande
+				// les lignes d'expeditions sont liées à une ligne de commande donc il faut charger la ligne de commande
 				$orderLine = $this->getOrderLineFromCache($line->fk_origin_line);
 				if ($orderLine) {
 					// maintenant il est possible d'avoir la commande liée
@@ -555,10 +555,11 @@ class Interfaceorderfromsupplierordermulticompanytrigger
 									continue;
 								}
 
-								// si l'expedition est lié à la commande fourn alors on part du principe qu'elle est receptionné car le lien element elements ne se fait (si rien n'a changé) que à la fin de la reception
-								if(!empty($shipment->linkedObjectsIds['order_supplier']) && in_array($supplierOrder->id, $shipment->linkedObjectsIds['order_supplier'])){
-									continue;
-								}
+//								// Mis en commentaire car au final je le fait ligne à ligne, mais ça peut être intéressant pour plus tard
+//								// si l'expedition est lié à la commande fourn alors on part du principe qu'elle est receptionné car le lien element elements ne se fait que (si rien n'a changé) à la fin de la reception
+//								if(!empty($shipment->linkedObjectsIds['order_supplier']) && in_array($supplierOrder->id, $shipment->linkedObjectsIds['order_supplier'])){
+//									continue;
+//								}
 
 								// Marque cet commande fournisseur pour une mise à jour du statut
 								$SupplierOrderToCheck[] = $supplierOrder->id;
