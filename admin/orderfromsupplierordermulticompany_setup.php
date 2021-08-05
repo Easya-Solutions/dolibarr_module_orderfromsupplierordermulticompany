@@ -166,7 +166,7 @@ $TTriggers = array("ORDER_SUPPLIER_VALIDATE" => "Valider", "ORDER_SUPPLIER_SUBMI
 
 print '<table class="liste">';
 
-setup_print_title('Paramétrer les gestions de status');
+setup_print_title('ParamOFSOMStatus');
 print '<form method="post" action="' . $_SERVER['PHP_SELF'] . '" enctype="multipart/form-data" >';
 print '<input type="hidden" name="token" value="' . $_SESSION['newtoken'] . '">';
 print '<input type="hidden" name="action" value="setconststatus">';

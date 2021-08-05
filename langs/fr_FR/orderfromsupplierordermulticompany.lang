@@ -19,3 +19,4 @@ ThisEntityMappingNeedToBeDonneOnEachEntityListed = La liaison entre les tiers do
 ReceptionWarehouseNotDefined = Entrepôt de reception auto non défini
 ReceptionWarehouseCheckError = Une erreur c'est produite lors de la vérification de "l'entrepôt de reception auto"
 ReceiveFromAutoWorkflowForSupplierShipment = Reception depuis l'expedition %s du fournisseur
+ParamOFSOMStatus = Paramétrer les gestions de statut
