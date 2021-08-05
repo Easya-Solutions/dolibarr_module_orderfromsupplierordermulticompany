@@ -151,7 +151,11 @@ class Interfaceorderfromsupplierordermulticompanytrigger
 			}
 		}
 
-		if (($action === 'ORDER_SUPPLIER_VALIDATE' && empty($conf->global->OFSOM_STATUS)) || $action === $conf->global->OFSOM_STATUS) {
+
+		if (($action === 'ORDER_SUPPLIER_VALIDATE' && empty($conf->global->OFSOM_STATUS))
+			|| $action === $conf->global->OFSOM_STATUS)
+		{
+			// Transmition de la commande fournisseur vers l'entité fournisseur pour création commande client
 			return $this->_cloneOrder($object);
 		}
 		elseif ($action === 'ORDER_SUPPLIER_RECEIVE') {
