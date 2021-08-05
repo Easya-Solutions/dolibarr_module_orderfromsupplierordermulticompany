@@ -458,7 +458,7 @@ class Interfaceorderfromsupplierordermulticompanytrigger
 			/** @var Expedition $object */
 			//  Passe la commande fournisseur à reçut (entité A) lors de la cloture de l'expedition (Entité courrante)
 			if(!empty($conf->global->OFSOM_SET_SUPPLIER_ORDER_RECEIVED_ON_SUPPLIER_SHIPMENT_CLOSED)){
-				return $this->receiveSupplierOrderFromShippment($object);
+				return $this->receiveSupplierOrderFromShipment($object);
 			}
 		}
 		return 0;
@@ -490,10 +490,10 @@ class Interfaceorderfromsupplierordermulticompanytrigger
 
 	/**
 	 * Passe la commande fournisseur à reçut (entité A) lors de la cloture de l'expedition (Entité courrante)
-	 * @param Expedition $shippment
+	 * @param Expedition $shipment
 	 * @return int|void
 	 */
-	public function receiveSupplierOrderFromShippment($shippment){
+	public function receiveSupplierOrderFromShipment($shipment){
 		global $user, $langs;
 		$langs->load('orderfromsupplierordermulticompany@orderfromsupplierordermulticompany');
 		// parceque c'est du TObject .... il faut donc tout transporter
@@ -506,17 +506,17 @@ class Interfaceorderfromsupplierordermulticompanytrigger
 		// si il y a bien un lien alors la reception de la commande fournisseur peut commencer
 		// si ce n'est pas configurer alors on fait rien de particulier c'est juste qu'il n'y a pas de lien entre société est entité
 		// et si il y a une erreur ben on la traite
-		$customerId = $TTELink->getSocIdForEntityCustomerFromSupplierEntitySocId($shippment->socid, $shippment->entity);
+		$customerId = $TTELink->getSocIdForEntityCustomerFromSupplierEntitySocId($shipment->socid, $shipment->entity);
 		if($customerId > 0) {
 
 
-			$shippment->fetchObjectLinked(null, '', null, '', 'OR', 1, 'sourcetype', 0);
+			$shipment->fetchObjectLinked(null, '', null, '', 'OR', 1, 'sourcetype', 0);
 
 			// la liste des commandes fournisseur pour lesquelles il faut mettre à jour le status
 			$SupplierOrderToCheck = array();
 
 
-			foreach ($shippment->lines as $line) {
+			foreach ($shipment->lines as $line) {
 				/** @var ExpeditionLigne $line */
 
 				if(empty($line->fk_product)){
@@ -556,7 +556,7 @@ class Interfaceorderfromsupplierordermulticompanytrigger
 								}
 
 								// si l'expedition est lié à la commande fourn alors on part du principe qu'elle est receptionné car le lien element elements ne se fait (si rien n'a changé) que à la fin de la reception
-								if(!empty($shippment->linkedObjectsIds['order_supplier']) && in_array($supplierOrder->id, $shippment->linkedObjectsIds['order_supplier'])){
+								if(!empty($shipment->linkedObjectsIds['order_supplier']) && in_array($supplierOrder->id, $shipment->linkedObjectsIds['order_supplier'])){
 									continue;
 								}
 
@@ -588,7 +588,7 @@ class Interfaceorderfromsupplierordermulticompanytrigger
 										$dDLUO = $detail_batch->sellby;
 										$lot = $detail_batch->batch;
 
-										$movementComment = $langs->trans('ReceiveFromAutoWorkflowForSupplierShipment', $shippment->ref);
+										$movementComment = $langs->trans('ReceiveFromAutoWorkflowForSupplierShipment', $shipment->ref);
 
 										$result = $supplierOrder->dispatchProduct($user, $line->fk_product, $line->qty, $supplierOrder->array_options['options_reception_warehouse'], $orderLine->subprice, $movementComment, $dDLC, $dDLUO, $lot, $fk_commandefourndet);
 										if ($result < 0) {
@@ -598,7 +598,7 @@ class Interfaceorderfromsupplierordermulticompanytrigger
 									}
 								}
 								else{
-									$movementComment = $langs->trans('ReceiveFromAutoWorkflowForSupplierShipment', $shippment->ref);
+									$movementComment = $langs->trans('ReceiveFromAutoWorkflowForSupplierShipment', $shipment->ref);
 
 									$dDLC = $dDLUO = $lot = '';
 									$result = $supplierOrder->dispatchProduct($user, $line->fk_product, $line->qty, $supplierOrder->array_options['options_reception_warehouse'], $orderLine->subprice, $movementComment, $dDLC, $dDLUO, $lot, $fk_commandefourndet);
