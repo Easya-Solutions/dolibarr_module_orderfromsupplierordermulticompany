@@ -760,7 +760,7 @@ class Interfaceorderfromsupplierordermulticompanytrigger
 
 
 	/**
-	 * @param $id
+	 * @param int $id
 	 * @return object
 	 */
 	public function getElementFromCache($element, $id){
