@@ -124,7 +124,7 @@ class TTELink extends TObjetStd
 
 
 	/**
-	 * Retourne l'entité correspondant  au tiers depuis  l'entité courante
+	 * Retourne l'entité correspondant  au tiers dans l'entité courante
 	 * @param $fk_soc
 	 * @param int $currentEntity
 	 * @return int	<=0 if KO, >0 if OK
