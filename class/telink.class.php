@@ -111,7 +111,7 @@ class TTELink extends TObjetStd
 			// Récupération du soc id du tiers client de l'expédition
 			$customerId = $this->getSocIdFromEntity($currentEntity, $customerEntity);
 			if($customerId) {
-				return $customerId;
+				return intval($customerId);
 			}
 		}
 		elseif ($customerEntity < 0){
@@ -330,6 +330,7 @@ class TTELink extends TObjetStd
 	}
 
 	/**
+	 * Permet de recupérer l'Id de la commande client coté entité fournisseur à partir de la commande fournisseur coté entité cliente
 	 * @param CommandeFournisseur $supplierOrder
 	 * @param int $targetEntity entité cible (commande client)
 	 * @param int $targetSocid societé cible (commande client)
@@ -367,6 +368,8 @@ class TTELink extends TObjetStd
 
 
 	/**
+	 * Permet de récupérer l'ID de la commande client créée sur l'entité fournisseur à partir de la commande fournisseur de l'entité cliente
+	 *
 	 * @param Commande $order
 	 * @param int $targetEntity
 	 * @param int $targetSocid

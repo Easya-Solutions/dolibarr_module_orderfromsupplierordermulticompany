@@ -61,7 +61,7 @@ class modorderfromsupplierordermulticompany extends DolibarrModules
         // (where XXX is value of numeric property 'numero' of module)
         $this->description = "Description of module orderfromsupplierordermulticompany";
         // Possible values for version are: 'development', 'experimental' or version
-        $this->version = '2.1.1';
+        $this->version = '2.2.0';
         // Key used in llx_const table to save module status enabled/disabled
         // (where MYMODULE is value of property name of module in uppercase)
         $this->const_name = 'MAIN_MODULE_' . strtoupper($this->name);
@@ -453,7 +453,7 @@ class modorderfromsupplierordermulticompany extends DolibarrModules
 		$label =  'AutoReceptionWarehouse';
 		$help =  'AutoReceptionWarehouseHelp';
 		$key = 'reception_warehouse';
-		$e->addExtraField($key, $label, 'link', 1, 11, 'commande_fournisseur', 0, 0, '', $param, 0, '', 3, $help, '', 0, 'ofsom@orderfromsupplierordermulticompany','!empty($conf->global->OFSOM_SET_SUPPLIER_ORDER_RECEIVED_ON_SUPPLIER_SHIPMENT_CLOSED)');
+		$e->addExtraField($key, $label, 'link', 1, 10, 'commande_fournisseur', 0, 0, '', $param, 0, '', 3, $help, '', 0, 'ofsom@orderfromsupplierordermulticompany','!empty($conf->global->OFSOM_SET_SUPPLIER_ORDER_RECEIVED_ON_SUPPLIER_SHIPMENT_CLOSED)');
 
 
 		// ajoute un extrafield de laison entre la ligne de commande fournisseur et la ligne de commande créé
@@ -461,7 +461,7 @@ class modorderfromsupplierordermulticompany extends DolibarrModules
 		$label =  'supplierOrderDetSource';
 		$help =  'supplierOrderDetSourceHelp';
 		$key = 'supplier_order_det_source';
-		$e->addExtraField($key, $label, 'int', 1, 11, 'supplierOrderDetSource', 0, 0, '', $param, 0, '', 0, $help, '', 0, 'ofsom@orderfromsupplierordermulticompany');
+		$e->addExtraField($key, $label, 'int', 1, 10, 'commandedet', 0, 0, '', $param, 0, '', 0, $help, '', 0, 'ofsom@orderfromsupplierordermulticompany');
 
 
 

@@ -3,4 +3,5 @@
 
 AutoReceptionWarehouse = Entrepôt de reception auto
 AutoReceptionWarehouseHelp = Dans le cas d'une reception automatique entre entité l'entrepôt de reception doit être défini à l'avance
-supplierOrderDetSource =
+supplierOrderDetSource = Liaison des lignes de commandes entre entités
+supplierOrderDetSourceHelp = Liaison des lignes de commandes fournisseur et commandes client entre entité

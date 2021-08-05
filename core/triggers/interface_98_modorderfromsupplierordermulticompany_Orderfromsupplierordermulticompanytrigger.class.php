@@ -504,13 +504,9 @@ class Interfaceorderfromsupplierordermulticompanytrigger
 
 			$shippment->fetchObjectLinked(null, '', null, '', 'OR', 1, 'sourcetype', 0);
 
-			// Petit tableau pour permettre de faire les receptions de produit
-			$supplierOrderLineAllreadyReceive = array(
-				// Utilisation :
-				//  idSupplierOrder => array(
-				//		idSupplierOrderLine => qty already receive : TODO fetch receive if possible and set this array
-				//	);
-			);
+			// la liste des commandes fournisseur pour lesquelles il faut mettre à jour le status
+			$SupplierOrderToCheck = array();
+
 
 			foreach ($shippment->lines as $line) {
 				/** @var ExpeditionLigne $line */
@@ -518,6 +514,19 @@ class Interfaceorderfromsupplierordermulticompanytrigger
 				if(empty($line->fk_product)){
 					// si pas de fk_product alors pas de stock géré
 					// si pas de stock géré alors pas de stock géré...
+					continue;
+				}
+
+				// Vérifier les elements elements pour voir si il y a un lien entre la ligne d'expedition et une commande fournisseur
+				$line->fetchObjectLinked(null, 'order_supplier');
+				$supplierOrderLinesLinked = $this->getLinkedSupplierOrderDetFromExpeditionDet($line);
+				if($supplierOrderLinesLinked === false){
+					$this->setError($this->db->error());
+					return -1;
+				}
+
+				if(!empty($supplierOrderLinesLinked)){
+					//  Si tel est le cas alors ne pas traiter la ligne car déjà traitée
 					continue;
 				}
 
@@ -543,10 +552,14 @@ class Interfaceorderfromsupplierordermulticompanytrigger
 									continue;
 								}
 
+								// Marque cet commande fournisseur pour une mise à jour du statut
+								$SupplierOrderToCheck[] = $supplierOrder->id;
+
 								// Maintenant il faut faire les receptions des lignes sur la commande fournisseur
 								if(empty($orderLine->array_options)){
 									$orderLine->fetch_optionals();
 								}
+
 								if(!empty($orderLine->array_options['options_supplier_order_det_source'])){
 									$fk_commandefourndet = intval($orderLine->array_options['options_supplier_order_det_source']);
 
@@ -586,6 +599,10 @@ class Interfaceorderfromsupplierordermulticompanytrigger
 										return -1;
 									}
 								}
+
+								// créé un lien element element entre la ligne d'expedition et la ligne de commande fourn pour avoir une trace de la reception
+								$line->add_object_linked('order_supplierdet', $fk_commandefourndet);
+
 							}
 							else{
 								return -1;
@@ -600,6 +617,44 @@ class Interfaceorderfromsupplierordermulticompanytrigger
 					}
 				} else {
 					return -1;
+				}
+			}
+
+			// Changement de status pour les commandes
+			if(!empty($SupplierOrderToCheck)){
+				$SupplierOrderToCheck = array_unique($SupplierOrderToCheck);
+				foreach ($SupplierOrderToCheck as $supplierOrderId) {
+					$supplierOrder = $this->getSupplierOrderFromCache($supplierOrderId);
+
+
+					// Si la commande est déja receptionné ou annulée alors il n'y a rien a faire
+					// ya normalement pas besoin de ce test car déjà fait plus haut mais je préfère un peu de prudence
+					if(in_array($supplierOrder->statut, array($supplierOrder::STATUS_RECEIVED_COMPLETELY,$supplierOrder::STATUS_CANCELED,$supplierOrder::STATUS_CANCELED_AFTER_ORDER))){
+						continue;
+					}
+
+					$supplierOrder->loadReceptions();
+
+					// if sommes receptions done, then it must be partially receive
+					$receivePartially = !empty($supplierOrder->receptions);
+
+					// test if completely received
+					$receiveCompete = false;
+					if($receivePartially) {
+						$receiveCompete = true;
+						foreach ($supplierOrder->lines as $line) {
+							if (doubleval($line->qty) > doubleval($supplierOrder->receptions[$line->id])) {
+								$receiveCompete = false;
+								break;
+							}
+						}
+					}
+
+					if($receiveCompete) {
+						$supplierOrder->setStatus($user, $supplierOrder::STATUS_RECEIVED_COMPLETELY);
+					} elseif($receivePartially) {
+						$supplierOrder->setStatus($user, $supplierOrder::STATUS_RECEIVED_PARTIALLY);
+					}
 				}
 			}
 
@@ -747,4 +802,33 @@ class Interfaceorderfromsupplierordermulticompanytrigger
 
 		return false;
 	}
+
+	/**
+	 * @param ExpeditionLigne $expeditionLigne
+	 */
+	public function getLinkedSupplierOrderDetFromExpeditionDet($expeditionLigne){
+
+		// Links between objects are stored in table element_element
+		$sql = 'SELECT rowid, fk_source, sourcetype, fk_target, targettype';
+		$sql .= ' FROM '.MAIN_DB_PREFIX.'element_element';
+		$sql .= " WHERE  sourcetype = 'order_supplierdet'";
+		$sql .= " AND fk_target = ".$expeditionLigne->id." AND targettype = '".$this->db->escape($expeditionLigne->element)."'";
+
+		// TODO : return $this->db->getRows($sql); when this module will be min 12.0 compatible
+
+		$res = $this->db->query($sql);
+		if ($res)
+		{
+			$results = array();
+			if ($this->db->num_rows($res) > 0) {
+				while ($obj = $this->db->fetch_object($res)) {
+					$results[] = $obj;
+				}
+			}
+			return $results;
+		}
+
+		return false;
+	}
+
 }
