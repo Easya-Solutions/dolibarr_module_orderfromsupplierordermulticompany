@@ -14,7 +14,7 @@ OFSOMErrorBadStatusOrder = La commande fournisseur %s de l'entité mére n'est p
 OFSOMUpdateOrderSource = Après ajout ou suppression d'une ligne sur la commande client, ajoute ou supprime la ligne sur la commande fournisseur source
 OFSOM_SET_SUPPLIER_ORDER_RECEIVED_ON_SUPPLIER_SHIPMENT_CLOSED = Passe la commande fournisseur à reçut (Entité A) lors de la cloture de l'expedition (Entité B)
 OFSOM_SET_SUPPLIER_ORDER_RECEIVED_ON_SUPPLIER_SHIPMENT_CLOSED_HELP = ATTENTION : Le partage des produits entre les entités correspondantes doit être actif
-ThisEntityMappingNeedToBeDonneOnEachEntityListed = La liaison entre les tiers doit être effectuée sur chaque entité pour permettre les echanges bidirectionnels
+ThisEntityMappingNeedToBeDoneOnEachEntityListed = La liaison entre les tiers doit être effectuée sur chaque entité pour permettre les échanges bidirectionnels
 
 ReceptionWarehouseNotDefined = Entrepôt de reception auto non défini
 ReceptionWarehouseCheckError = Une erreur c'est produite lors de la vérification de "l'entrepôt de reception auto"
