@@ -228,7 +228,8 @@ class TTELink extends TObjetStd
 
 				}
 
-				// Avoir une liason entre les lignes de la commande fournisseur de l'entité A et les lignes de la commande créée coté entité B, ça arrange bien, je sais de rien... bisous
+				// Avoir une liason entre les lignes de la commande fournisseur de l'entité A et les lignes de la commande créée coté entité B,
+				// ça arrange bien, car il n'est pas possible de connaitre ID de la ligne en cours de création. (je sais de rien... bisous)
 				$lineOrder->array_options['options_supplier_order_det_source'] = $line->id;
 
 				$o->lines[] = $lineOrder;
