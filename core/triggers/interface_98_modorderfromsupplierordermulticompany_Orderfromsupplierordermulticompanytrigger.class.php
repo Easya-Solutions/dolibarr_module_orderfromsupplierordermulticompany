@@ -504,7 +504,7 @@ class Interfaceorderfromsupplierordermulticompanytrigger
 		$TTELink = new TTELink();
 		// Récupération de l'entité correspondant au tiers client de l'expédition,
 		// si il y a bien un lien alors la reception de la commande fournisseur peut commencer
-		// si ce n'est pas configurer alors on fait rien de particulier c'est juste qu'il n'y a pas de lien entre société est entité
+		// si ce n'est pas configuré alors on fait rien de particulier c'est juste qu'il n'y a pas de lien entre société et entité
 		// et si il y a une erreur ben on la traite
 		$customerId = $TTELink->getSocIdForEntityCustomerFromSupplierEntitySocId($shipment->socid, $shipment->entity);
 		if($customerId > 0) {
