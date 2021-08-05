@@ -78,7 +78,7 @@ print dol_get_fiche_end($notab);
 // Setup page goes here
 	echo '<h3>'.$langs->trans("orderfromsupplierordermulticompanySetupPage").'</h3>';
 
-	print '<div class="warning" >'.$langs->trans('ThisEntityMappingNeedToBeDonneOnEachEntityListed').'</div>';
+	print '<div class="warning" >'.$langs->trans('ThisEntityMappingNeedToBeDoneOnEachEntityListed').'</div>';
 
 	$ATMdb=new TPDOdb;
 	if(isset($_REQUEST['action']) && $_REQUEST['action']=='save') {
