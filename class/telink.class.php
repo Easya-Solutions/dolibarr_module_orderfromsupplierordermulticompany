@@ -69,7 +69,7 @@ class TTELink extends TObjetStd
 
 
 	/**
-	 * Retourne l'ID du tiers correspondant à l'entité ciblée depuis  l'entité  courante
+	 * Retourne l'ID du tiers correspondant à l'entité ciblée dans l'entité courante
 	 * @param int $targetEntity
 	 * @param int $currentEntity
 	 * @return int 	<=0 if KO, >0 if OK
