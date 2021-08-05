@@ -144,6 +144,10 @@ class Interfaceorderfromsupplierordermulticompanytrigger
 					$this->setError('ReceptionWarehouseCheckError');
 					return -1;
 				}
+				else{
+					// Pas d'entité liée à la société alors tout est ok
+					// Le traitement peut continuer
+				}
 			}
 		}
 
