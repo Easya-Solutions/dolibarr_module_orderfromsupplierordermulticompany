@@ -474,7 +474,17 @@ class Interfaceorderfromsupplierordermulticompanytrigger
 
 		$db =& $this->db;
 
-		$res = $db->query("SELECT fk_entity FROM " . MAIN_DB_PREFIX . "thirdparty_entity WHERE entity=" . $conf->entity . " AND fk_soc=" . $object->socid . ' AND fk_entity <> ' . $conf->entity);
+		$res = $db->query("SELECT fk_entity FROM " . MAIN_DB_PREFIX . "thirdparty_entity"
+		                  . " WHERE entity=" . $conf->entity
+		                  . " AND fk_soc=" . $object->socid
+		                  . ' AND fk_entity <> ' . $conf->entity);
+		if (!$res) {
+			// SQL ERROR, should not happen.
+			$this->setError('ErrorSQL');
+		} elseif ($db->num_rows($res) === 0) {
+			// No entity linked to the third party → do nothing
+			return 0;
+		}
 		$obj = $db->fetch_object($res);
 
 		if ($obj->fk_entity > 0) {
@@ -483,7 +493,7 @@ class Interfaceorderfromsupplierordermulticompanytrigger
 			$this->setError($TTELink->error);
 			return $res;
 		} else {
-			$this->error = $langs->trans('MissingEntityLink');
+			$this->setError('MissingEntityLink');
 			return -1;
 		}
 	}
