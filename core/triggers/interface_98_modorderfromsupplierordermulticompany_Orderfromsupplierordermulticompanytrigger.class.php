@@ -493,7 +493,7 @@ class Interfaceorderfromsupplierordermulticompanytrigger
 			$this->setError($TTELink->error);
 			return $res;
 		} else {
-			$this->setError = $langs->trans('MissingEntityLink');
+			$this->setError('MissingEntityLink');
 			return -1;
 		}
 	}
