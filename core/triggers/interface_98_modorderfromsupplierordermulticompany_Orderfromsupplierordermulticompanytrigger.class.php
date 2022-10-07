@@ -354,38 +354,59 @@ class Interfaceorderfromsupplierordermulticompanytrigger
 		else if ($action === 'LINEORDER_UPDATE' && !empty($conf->global->OFSOM_UPDATE_LINE_SOURCE)) {
 			if ($object->oldline->qty != $object->qty || $object->oldline->subprice != $object->subprice) {
 				$conf->supplierorderdet->enabled = 1;
-				$object->fetchObjectLinked(null, 'supplierorderdet', $object->id, $object->element, 'OR', 1, 'sourcetype', 0);
-				if (!empty($object->linkedObjectsIds['supplierorderdet'])) {
-					dol_include_once('/fourn/class/fournisseur.commande.class.php');
-					$commande = new Commande($object->db);
-					$commande->fetch($object->fk_commande);
-					$res = $object->db->query("SELECT fk_entity FROM " . MAIN_DB_PREFIX . "thirdparty_entity WHERE entity=" . $conf->entity . " AND fk_soc=" . $commande->socid . ' AND fk_entity <> ' . $conf->entity);
-					$obj = $object->db->fetch_object($res);
-					if (!empty($obj->fk_entity)) {
-						foreach ($object->linkedObjectsIds['supplierorderdet'] as $supplierOrderLineId) {
-							$supplierOrderLine = new CommandeFournisseurLigne($object->db);
-							$supplierOrderLine->fetch($supplierOrderLineId);
-							$tabprice = calcul_price_total($object->qty, $object->subprice, $supplierOrderLine->remise_percent, $supplierOrderLine->tva_tx, $supplierOrderLine->localtax1_tx, $supplierOrderLine->localtax2_tx, 0, 'HT', $supplierOrderLine->info_bits, $supplierOrderLine->product_type, $supplierOrderLine->thirdparty, array(), 100, $supplierOrderLine->multicurrency_tx, $supplierOrderLine->pu_ht_devise);
+                dol_include_once('/fourn/class/fournisseur.commande.class.php');
+                $commande = new Commande($object->db);
+                $commande->fetch($object->fk_commande);
+                $res = $object->db->query("SELECT fk_entity FROM " . MAIN_DB_PREFIX . "thirdparty_entity WHERE entity=" . $conf->entity . " AND fk_soc=" . $commande->socid . ' AND fk_entity <> ' . $conf->entity);
+                $obj = $object->db->fetch_object($res);
+                if (!empty($obj->fk_entity)) {
+                    $error = 0;
+                    if (!empty($object->array_options['options_supplier_order_det_source'])) {
+                        $supplierOrderLineId = (int) $object->array_options['options_supplier_order_det_source'];
+                        $supplierOrderLine = new CommandeFournisseurLigne($object->db);
+                        $res = $supplierOrderLine->fetch($supplierOrderLineId);
+                        if ($res <= 0) {
+                            $error++;
+                            $this->errors[] = $supplierOrderLine->errorsToString();
+                        }
 
-							$supplierOrderLine->qty = $object->qty;
-							$supplierOrderLine->subprice = $object->subprice;
-							$supplierOrderLine->total_ht = $tabprice[0];
-							$supplierOrderLine->total_tva = $tabprice[1];
-							$supplierOrderLine->total_ttc = $tabprice[2];
-							$supplierOrderLine->update();
+                        if (!$error) {
+                            $tabprice = calcul_price_total($object->qty, $object->subprice, $supplierOrderLine->remise_percent, $supplierOrderLine->tva_tx, $supplierOrderLine->localtax1_tx, $supplierOrderLine->localtax2_tx, 0, 'HT', $supplierOrderLine->info_bits, $supplierOrderLine->product_type, $supplierOrderLine->thirdparty, array(), 100, $supplierOrderLine->multicurrency_tx, $supplierOrderLine->pu_ht_devise);
 
-							//MAJ des totaux
-							$tmpentity = $conf->entity;
-							$conf->entity = $obj->fk_entity;
-							$supplierOrder = new CommandeFournisseur($object->db);
-							$supplierOrder->fetch($supplierOrderLine->fk_commande);
-							$supplierOrder->update_price('', 'auto');
+                            $supplierOrderLine->qty = $object->qty;
+                            $supplierOrderLine->subprice = $object->subprice;
+                            $supplierOrderLine->total_ht = $tabprice[0];
+                            $supplierOrderLine->total_tva = $tabprice[1];
+                            $supplierOrderLine->total_ttc = $tabprice[2];
+                            $res = $supplierOrderLine->update();
+                            if ($res < 0) {
+                                $error++;
+                                $this->errors[] = $supplierOrderLine->errorsToString();
+                            }
 
-							$conf->entity = $tmpentity;
-						}
-					}
-				}
+                            if (!$error) {
+                                //MAJ des totaux
+                                $tmpentity = $conf->entity;
+                                $conf->entity = $obj->fk_entity;
+                                $supplierOrder = new CommandeFournisseur($object->db);
+                                $supplierOrder->fetch($supplierOrderLine->fk_commande);
+                                $res = $supplierOrder->update_price('', 'auto');
+                                if ($res < 0) {
+                                    $error++;
+                                    $this->errors[] = $supplierOrder->errorsToString();
+                                }
 
+                                $conf->entity = $tmpentity;
+                            }
+                        }
+                    }
+
+                    if ($error) {
+                        return -1;
+                    } else {
+                        return 1;
+                    }
+                }
 			}
 		}
 		else if ($action === 'LINEORDER_INSERT') {
